@@ -4,12 +4,18 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Procedure;
 
+import util.CycleNodesGenerator;
+
 public class Indexer {
 	
 	@Context 
 	public GraphDatabaseService dbs;
 	
-	
+	/**
+	 * Performs necessary actions to create the reachability index: <br>
+	 * 1. Detect Cycles and Create Cycle-Nodes. <br>
+	 * TODO ...
+	 */
 	@Procedure(name = "createIndex", mode = Mode.WRITE)
 	public void procedure_createIndex() {
 		// 1. Detect Cycles and Create Cycle-Nodes
@@ -20,9 +26,15 @@ public class Indexer {
 		
 	}
 	
+	/**
+	 * Returns true if there is an Path between startNode and endNode
+	 * @param startNode
+	 * @param endNode
+	 */
 	@Procedure(name = "checkReachability", mode = Mode.READ)
-	public void procedure_checkReachability(Node startNode, Node endNode) {
+	public Boolean procedure_checkReachability(Node startNode, Node endNode) {
 		// TODO:
+		return false;
 	}
 	
 
