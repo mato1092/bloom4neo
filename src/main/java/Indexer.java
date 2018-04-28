@@ -5,6 +5,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Procedure;
 
 import util.CycleNodesGenerator;
+import util.IndexGenerator;
 
 public class Indexer {
 	
@@ -21,8 +22,8 @@ public class Indexer {
 		// 1. Detect Cycles and Create Cycle-Nodes
 		CycleNodesGenerator.generateCycleNodes(dbs);
 		
-		// 2. TODO: create Index
-		
+		// 2. create Index
+		IndexGenerator.generateIndex(dbs);
 		
 	}
 	

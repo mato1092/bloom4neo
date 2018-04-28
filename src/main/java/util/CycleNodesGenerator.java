@@ -10,6 +10,13 @@ public abstract class CycleNodesGenerator {
 	 */
 	public static void generateCycleNodes(GraphDatabaseService dbs) {
 		// TODO:
+		
+		
+		
+		// TODO: label Zyklus Knoten:
+		// TODO: Name der Properties:
+			// 
+			// 
 	}
 
 }
