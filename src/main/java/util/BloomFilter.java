@@ -20,6 +20,18 @@ public class BloomFilter {
 	
 	/**
 	 * Written by Zoltan
+	 * Adds a node's Bloom filter ID to an existing Bloom filter
+	 * @param bfID Bloom filter ID to be added
+	 * @param s Bloom filter in string form
+	 * @return result new Bloom filter as String
+	 */
+	public static String addNode(int bfID, String s) {
+		BigInteger filter = new BigInteger(s.getBytes());
+		return new String(filter.setBit(bfID).toByteArray());
+	}
+	
+	/**
+	 * Written by Zoltan
 	 * Bloom filter-based reachability query: does a path 1~>2 exist?
 	 * return true: path possibly exists
 	 * return false: path does not exist
