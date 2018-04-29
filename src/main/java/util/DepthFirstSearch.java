@@ -1,7 +1,9 @@
 package util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -56,8 +58,32 @@ public class DepthFirstSearch {
 			n.setProperty("Lfin", getCurrent());
 		}
 		else {
-			// TODO
-			
+			Node cRep = n;
+			if(!n.hasProperty("ListOfMembers")) {
+				cRep = dbs.getNodeById((long) n.getProperty("InCycleOf"));
+			}
+			Set<Node> outList = new HashSet<Node>();
+			cRep.setProperty("Ldis", getCurrent());
+			Node v;
+			List<Long> memberList = (List<Long>) cRep.getProperty("ListOfMembers");
+			for(Long id : memberList) {
+				v = dbs.getNodeById(id);
+				v.setProperty("Ldis", getCurrent());
+				for(Relationship r : v.getRelationships(Direction.OUTGOING)) {
+					outList.add(r.getEndNode());
+				}
+			}
+			for(Node outNode : outList) {
+				if(!outNode.hasProperty("Ldis")) {
+					DFSVisit(outNode);
+				}
+			}
+			postOrder.add(cRep.getId());
+			long cur = incrementCurrent();
+			cRep.setProperty("Lfin", cur);
+			for(Long id : memberList) {
+				dbs.getNodeById(id).setProperty("Lfin", cur);
+			}
 		}
 	}
 	
