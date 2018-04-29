@@ -65,9 +65,10 @@ public class DepthFirstSearch {
 			Set<Node> outList = new HashSet<Node>();
 			cRep.setProperty("Ldis", getCurrent());
 			Node v;
-			List<Long> memberList = (List<Long>) cRep.getProperty("ListOfMembers");
+			long[] memberList = (long[]) cRep.getProperty("ListOfMembers");
 			for(Long id : memberList) {
 				v = dbs.getNodeById(id);
+				// if indexing info should not be stored on SCC members, comment out next line
 				v.setProperty("Ldis", getCurrent());
 				for(Relationship r : v.getRelationships(Direction.OUTGOING)) {
 					outList.add(r.getEndNode());
@@ -81,6 +82,7 @@ public class DepthFirstSearch {
 			postOrder.add(cRep.getId());
 			long cur = incrementCurrent();
 			cRep.setProperty("Lfin", cur);
+			// if indexing info should not be stored on SCC members, comment out next loop
 			for(Long id : memberList) {
 				dbs.getNodeById(id).setProperty("Lfin", cur);
 			}
