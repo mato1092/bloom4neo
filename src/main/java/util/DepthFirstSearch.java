@@ -26,8 +26,8 @@ public class DepthFirstSearch {
 				/* if (n not SCC representative and has no incoming relationships)
 				 * 	or (n is SCC representative and SCC has no incoming relationships)
 				 */
-				if( ( !n.hasProperty("ListOfMembers") && n.getDegree(Direction.INCOMING) == 0 )
-						|| ( n.hasProperty("ListOfMembers") && (int) n.getProperty("InDegree") == 0) ) {
+				if( ( !n.hasProperty("cycleMembers") && n.getDegree(Direction.INCOMING) == 0 )
+						|| ( n.hasProperty("cycleMembers") && (int) n.getProperty("inDegree") == 0) ) {
 					
 					DFSVisit(n);
 					
@@ -37,14 +37,14 @@ public class DepthFirstSearch {
 			
 		}
 		
-		return this.postOrder;
+		return getPostOrder();
 	}  
 	
 	private void DFSVisit(Node n) {
 		
 		incrementCurrent();
 		// if n not member or representative of an SCC
-		if ( !n.hasProperty("InCycleOf") && !n.hasProperty("ListOfMembers") ) {
+		if ( !n.hasProperty("cycleRepID") && !n.hasProperty("cycleMembers") ) {
 			n.setProperty("Ldis", getCurrent());
 			Node v;
 			for(Relationship r : n.getRelationships(Direction.OUTGOING)) {
@@ -59,13 +59,13 @@ public class DepthFirstSearch {
 		}
 		else {
 			Node cRep = n;
-			if(!n.hasProperty("ListOfMembers")) {
-				cRep = dbs.getNodeById((long) n.getProperty("InCycleOf"));
+			if(!n.hasProperty("cycleMembers")) {
+				cRep = dbs.getNodeById((long) n.getProperty("cycleRepID"));
 			}
 			Set<Node> outList = new HashSet<Node>();
 			cRep.setProperty("Ldis", getCurrent());
 			Node v;
-			long[] memberList = (long[]) cRep.getProperty("ListOfMembers");
+			long[] memberList = (long[]) cRep.getProperty("cycleMembers");
 			for(Long id : memberList) {
 				v = dbs.getNodeById(id);
 				// if indexing info should not be stored on SCC members, comment out next line
@@ -101,6 +101,10 @@ public class DepthFirstSearch {
 		
 		this.postOrder.add(nodeID);
 		
+	}
+	
+	private List<Long> getPostOrder() {
+		return this.postOrder;
 	}
 	
 	private long getCurrent() {
