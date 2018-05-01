@@ -1,6 +1,9 @@
 package util;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class BloomFilter {
 	
@@ -23,7 +26,7 @@ public class BloomFilter {
 	 * Adds a node's Bloom filter ID to an existing Bloom filter
 	 * @param bfID Bloom filter ID to be added
 	 * @param bf Bloom filter in byte array form
-	 * @return result new Bloom filter as String
+	 * @return result new Bloom filter as byte array
 	 */
 	public static byte[] addNode(int bfID, byte[] bf) {
 		BigInteger filter = new BigInteger(bf);
@@ -60,5 +63,38 @@ public class BloomFilter {
 		
 		return true;
 	}
-
+	
+	/**
+	 * Computes BF indices for all nodes in graph based on mergeMap from VertexMerger.
+	 * Returns list of lists of nodes; each index corresponds to a BF index:
+	 * bfLists.get(i) will give the list of nodeIDs hashed to BF index i
+	 * @param mergeMap Map<mergeID, List<nodeID>> given by VertexMerger
+	 * @return bfLists
+	 */
+	public static List<List<Long>> doBFHash(Map<Long, List<Long>> mergeMap) {
+		long d = mergeMap.size();
+		long s = 160;
+		if(d <= 10) {
+			s = d;
+		}
+		else if(d <= 100) {
+			s = d/2;
+		}
+		else if(d < 1600) {
+			s = d/5;
+		}
+		List<List<Long>> bfLists = new ArrayList<List<Long>>();
+		for(int i = 0; i < s; i++) {
+			bfLists.add(new ArrayList<Long>());			
+		}
+		List<Long> mergeIDs = new ArrayList<Long>(mergeMap.keySet());
+		/* simple BF hashing to ensure fairly equal distribution of BF indices over mergeIDs
+		 * another solution may be a more randomised mapping of BFIDs to mergeIDs at the risk of more uneven distribution?
+		 */
+		for(int i = 0; i < mergeIDs.size(); i++) {
+			bfLists.get((int) (i % s)).addAll(mergeMap.get(mergeIDs.get(i)));
+		}
+		return bfLists;
+	}
+	
 }

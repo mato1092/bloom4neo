@@ -1,10 +1,9 @@
 package util;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 
 public abstract class IndexGenerator {
 	
@@ -23,6 +22,19 @@ public abstract class IndexGenerator {
 		// Step 1: DFS through DB to compute Ldis and Lfin of vertices and create post-order
 		DepthFirstSearch dfs = new DepthFirstSearch(dbs);
 		List<Long> postOrder = dfs.executeDFS();
+		// Step 2: Vertex merging
+		VertexMerger vm = new VertexMerger(postOrder);
+		Map<Long, List<Long>> mergeMap = vm.merge();
+		//Step 3: Bloom filter hashing
+		List<List<Long>> bfLists;
+		bfLists = BloomFilter.doBFHash(mergeMap);
+		int s = bfLists.size();
+		for(int i = 0; i < s; i++) {
+			List<Long> nodeList = bfLists.get(i);
+			for(int j = 0; j < nodeList.size(); j++) {
+				dbs.getNodeById(nodeList.get(j)).setProperty("BFID", i);
+			}
+		}
 		
 	}
 	

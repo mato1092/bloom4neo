@@ -104,16 +104,20 @@ public class DepthFirstSearch {
 	}
 	
 	private List<Long> getPostOrder() {
+		
 		return this.postOrder;
+		
 	}
 	
 	private long getCurrent() {
+		
 		return this.current;
+		
 	}
 	
 	private long incrementCurrent() {
 		
-		this.current +=1;
+		this.current += 1;
 		return this.current;
 		
 	}
