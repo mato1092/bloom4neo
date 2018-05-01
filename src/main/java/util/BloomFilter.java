@@ -2,8 +2,16 @@ package util;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 
 public class BloomFilter {
 	
@@ -15,7 +23,7 @@ public class BloomFilter {
 	 * @param bf2 2nd Bloom filter in byte array form
 	 * @return result of bitwise OR of the 2 Bloom filters
 	 */
-	public static byte[] add(byte[] bf1, byte[] bf2) {
+	public static byte[] addBFs(byte[] bf1, byte[] bf2) {
 		BigInteger bInt1 = new BigInteger(bf1);
 		BigInteger bInt2 = new BigInteger(bf2);
 		return bInt1.or(bInt2).toByteArray();
@@ -28,7 +36,7 @@ public class BloomFilter {
 	 * @param bf Bloom filter in byte array form
 	 * @return result new Bloom filter as byte array
 	 */
-	public static byte[] addNode(int bfID, byte[] bf) {
+	public static byte[] addNodeToBF(int bfID, byte[] bf) {
 		BigInteger filter = new BigInteger(bf);
 		return filter.setBit(bfID).toByteArray();
 	}
@@ -97,4 +105,94 @@ public class BloomFilter {
 		return bfLists;
 	}
 	
+	/**
+	 * Computes and stores Lin & Lout for each indexed node in DB
+	 * @param dbs GraphDatabaseService to be used
+	 * @param s number of Bloom filter indices
+	 */
+	public static void computeBFs(GraphDatabaseService dbs, int s) {
+		// Size of each Lin and Lout in bytes: s/8 rounded up
+		int size = (s+7)/8;
+		for(Node n : dbs.getAllNodes()) {
+			if(!n.hasProperty("Lout")) {
+				computeNodeBF(n, size, Direction.OUTGOING);
+			}
+		}
+
+		for(Node n : dbs.getAllNodes()) {
+			if(!n.hasProperty("Lin")) {
+				computeNodeBF(n, size, Direction.INCOMING);
+			}
+		}
+		
+	}
+	
+	/**
+	 * Computes Lin or Lout for a given node.
+	 * d determines the direction of the algorithm: Direction.INCOMING computes Lin, Direction.OUTGOING computes Lout
+	 * Bloom filter of SCCs are only stored on cycle representatives
+	 * @param n node
+	 * @param s Bloom filter size (in bytes)
+	 * @param d direction of search
+	 * @return Bloom filter Lout or Lin depending on d
+	 */
+	private static byte[] computeNodeBF(Node n, int size, Direction d) {
+		byte[] bf = new byte[size];
+		String property = "Lin";
+		if(d == Direction.OUTGOING) {
+			property = "Lout";
+		}
+		// if n neither member nor representative of an SCC
+		if (!n.hasProperty("cycleRepID") && !n.hasProperty("cycleMembers")) {
+			Node v;
+			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			byte[] bfV;
+			for(Relationship r : n.getRelationships(d)) {
+				v = r.getEndNode();
+				if(!v.hasProperty(property)) {
+					bfV = computeNodeBF(v, size, d);
+				}
+				else {
+					bfV = (byte[]) v.getProperty(property);
+				}
+				bf = addBFs(bf, bfV);
+			}
+			n.setProperty(property, bf);
+		}
+		// if n representative of an SCC
+		else if(n.hasProperty("cycleMembers")){
+			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			// set of outgoing or incoming neighbours of the SCC of n
+			Set<Node> nextNodes = new HashSet<Node>();
+			GraphDatabaseService dbs = n.getGraphDatabase();
+			List<Long> sccMembers = Arrays.asList((Long[]) n.getProperty("cycleMembers"));
+			for(Long nodeID : sccMembers) {
+				for(Relationship r: dbs.getNodeById(nodeID).getRelationships(d)) {
+					if(!sccMembers.contains(r.getEndNodeId())) {
+						nextNodes.add(r.getEndNode());						
+					}
+				}
+			}
+			byte[] bfV;
+			for(Node v : nextNodes) {
+				if(!v.hasProperty(property)) {
+					bfV = computeNodeBF(v, size, d);
+				}
+				else {
+					bfV = (byte[]) v.getProperty(property);
+				}
+				bf = addBFs(bf, bfV);
+			}	
+			n.setProperty(property, bf);		
+		}
+		// if n member of an SCC
+		else {
+			Node cRep = n.getGraphDatabase().getNodeById((long) n.getProperty("cycleRepID"));
+			if(!cRep.hasProperty(property)) {
+				bf = computeNodeBF(cRep, size, d);
+			}
+			else bf = (byte[]) cRep.getProperty(property);
+		}
+		return bf;
+	}
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 
 public abstract class IndexGenerator {
 	
@@ -25,9 +26,10 @@ public abstract class IndexGenerator {
 		// Step 2: Vertex merging
 		VertexMerger vm = new VertexMerger(postOrder);
 		Map<Long, List<Long>> mergeMap = vm.merge();
-		//Step 3: Bloom filter hashing
+		// Step 3: Bloom filter hashing
 		List<List<Long>> bfLists;
 		bfLists = BloomFilter.doBFHash(mergeMap);
+		// Storing Bloom filter index to each node in DB
 		int s = bfLists.size();
 		for(int i = 0; i < s; i++) {
 			List<Long> nodeList = bfLists.get(i);
@@ -35,6 +37,8 @@ public abstract class IndexGenerator {
 				dbs.getNodeById(nodeList.get(j)).setProperty("BFID", i);
 			}
 		}
+		// Step 4: Computing Lin and Lout for each node
+		BloomFilter.computeBFs(dbs, s);
 		
 	}
 	

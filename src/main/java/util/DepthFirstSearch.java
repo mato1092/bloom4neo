@@ -16,6 +16,11 @@ public class DepthFirstSearch {
 	private GraphDatabaseService dbs;
 	private List<Long> postOrder;
 	
+	/**
+	 * Executes Depth-first search through DB to compute Ldis & Lfin for all nodes and the post order
+	 * Ldis and Lfin stored as properties on nodes, for SCC members they are only stored on cycle representatives
+	 * @return post order
+	 */
 	public List<Long> executeDFS(){
 		
 		for(Node n : dbs.getAllNodes()) {
@@ -49,7 +54,7 @@ public class DepthFirstSearch {
 			Node v;
 			for(Relationship r : n.getRelationships(Direction.OUTGOING)) {
 				v = r.getEndNode();
-				if(!r.hasProperty("Ldis")) {
+				if(!v.hasProperty("Ldis")) {
 					DFSVisit(v);
 				}
 			}
@@ -68,8 +73,8 @@ public class DepthFirstSearch {
 			long[] memberList = (long[]) cRep.getProperty("cycleMembers");
 			for(Long id : memberList) {
 				v = dbs.getNodeById(id);
-				// if indexing info should not be stored on SCC members, comment out next line
-				v.setProperty("Ldis", getCurrent());
+				// if indexing info should be stored on SCC members, remove comment from next line
+//				v.setProperty("Ldis", getCurrent());
 				for(Relationship r : v.getRelationships(Direction.OUTGOING)) {
 					outList.add(r.getEndNode());
 				}
@@ -82,10 +87,10 @@ public class DepthFirstSearch {
 			postOrder.add(cRep.getId());
 			long cur = incrementCurrent();
 			cRep.setProperty("Lfin", cur);
-			// if indexing info should not be stored on SCC members, comment out next loop
-			for(Long id : memberList) {
-				dbs.getNodeById(id).setProperty("Lfin", cur);
-			}
+			// if indexing info should be stored on SCC members, remove comment from next loop
+//			for(Long id : memberList) {
+//				dbs.getNodeById(id).setProperty("Lfin", cur);
+//			}
 		}
 	}
 	

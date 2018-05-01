@@ -9,7 +9,7 @@ import java.util.Map;
  * @author Zoltan
  * WIP VertexMerging algorithm
  * Constructor gets post order, sets merge group size groupSize and no. of groups d
- * merge() computes vertex merging and returns a Map<long nodeID, long mergeID> whose first element is (-1, d) so BF hashing can use d
+ * merge() computes vertex merging and returns a Map<mergeID, List<nodeIDs>> mapping merged nodeIDs to their mergeID
  */
 public class VertexMerger {
 	private int d = 0;
