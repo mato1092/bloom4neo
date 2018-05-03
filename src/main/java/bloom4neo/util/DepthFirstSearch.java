@@ -1,4 +1,4 @@
-package indexation.util;
+package bloom4neo.util;
 
 import java.util.ArrayList;
 import java.util.HashSet;

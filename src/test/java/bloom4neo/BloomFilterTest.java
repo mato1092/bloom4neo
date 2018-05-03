@@ -1,8 +1,8 @@
-package bloom4j;
+package bloom4neo;
 
 import org.junit.Test;
 
-import indexation.util.BloomFilter;
+import bloom4neo.util.BloomFilter;
 
 public class BloomFilterTest {
 

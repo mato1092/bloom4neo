@@ -1,16 +1,13 @@
-package bloom4j;
+package bloom4neo;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.harness.junit.Neo4jRule;
 
 
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.neo4j.driver.v1.Values.parameters;
 
 public class IndexationTest
 {

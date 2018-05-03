@@ -1,4 +1,4 @@
-package indexation.util;
+package bloom4neo.util;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

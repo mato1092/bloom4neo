@@ -1,4 +1,4 @@
-package indexation;
+package bloom4neo;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -6,8 +6,8 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Procedure;
 
-import indexation.util.CycleNodesGenerator;
-import indexation.util.IndexGenerator;
+import bloom4neo.util.CycleNodesGenerator;
+import bloom4neo.util.IndexGenerator;
 
 public class Indexer {
 	
