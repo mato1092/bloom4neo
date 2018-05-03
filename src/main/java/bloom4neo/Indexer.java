@@ -8,6 +8,7 @@ import org.neo4j.procedure.Procedure;
 
 import bloom4neo.util.CycleNodesGenerator;
 import bloom4neo.util.IndexGenerator;
+import bloom4neo.util.IndexGeneratorV2;
 
 public class Indexer {
 	
@@ -25,7 +26,7 @@ public class Indexer {
 		CycleNodesGenerator.generateCycleNodes(dbs);
 		
 		// 2. create Index
-		IndexGenerator.generateIndex(dbs);
+		IndexGeneratorV2.generateIndex(dbs);
 		
 	}
 	

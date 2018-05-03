@@ -42,7 +42,9 @@ public class IndexationTest
                     "create (i)-[:HAS]->(f)";
 
             session.run(create);
-
+            
+            // TODO: how to call the indexing procedure?   
+            // session.run("CALL createIndex");
 
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
             assertTrue(Integer.parseInt(count) == 10);
@@ -52,7 +54,7 @@ public class IndexationTest
     }
 
     @Test
-    public void indexationSimpleGraphWithCylce() throws Throwable {
+    public void indexationSimpleGraphWithCycle() throws Throwable {
 
         // In a try-block, to make sure we close the driver and session after the test
         try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()

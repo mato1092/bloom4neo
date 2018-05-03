@@ -17,7 +17,6 @@ public class BloomFilter {
 	
 	
 	/**
-	 * Written by Zoltan
 	 * Adds two Bloom filters by bitwise OR and returns the result as String 
 	 * @param bf1 1st Bloom filter in byte array form
 	 * @param bf2 2nd Bloom filter in byte array form
@@ -30,7 +29,6 @@ public class BloomFilter {
 	}
 	
 	/**
-	 * Written by Zoltan
 	 * Adds a node's Bloom filter ID to an existing Bloom filter
 	 * @param bfID Bloom filter ID to be added
 	 * @param bf Bloom filter in byte array form
@@ -41,8 +39,12 @@ public class BloomFilter {
 		return filter.setBit(bfID).toByteArray();
 	}
 	
+	public static boolean checkBit(int index, byte[] bf) {
+		BigInteger bInt = new BigInteger(bf);
+		return bInt.testBit(index);
+	}
+	
 	/**
-	 * Written by Zoltan
 	 * Bloom filter-based reachability query: does a path 1~>2 exist?
 	 * return true: path possibly exists
 	 * return false: path does not exist
