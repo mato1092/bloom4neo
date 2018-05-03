@@ -1,10 +1,9 @@
-package util;
+package indexation.util;
 
 import java.util.List;
 import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 
 public abstract class IndexGenerator {
 	

@@ -1,10 +1,8 @@
 package bloom4j;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
-import util.BloomFilter;
+import indexation.util.BloomFilter;
 
 public class BloomFilterTest {
 

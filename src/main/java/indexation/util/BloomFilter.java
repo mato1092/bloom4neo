@@ -1,4 +1,4 @@
-package util;
+package indexation.util;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

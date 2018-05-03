@@ -1,4 +1,4 @@
-package util;
+package indexation.util;
 import org.neo4j.graphdb.GraphDatabaseService;
 
 public abstract class CycleNodesGenerator {

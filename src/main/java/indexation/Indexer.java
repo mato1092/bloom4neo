@@ -1,11 +1,13 @@
+package indexation;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Procedure;
 
-import util.CycleNodesGenerator;
-import util.IndexGenerator;
+import indexation.util.CycleNodesGenerator;
+import indexation.util.IndexGenerator;
 
 public class Indexer {
 	
