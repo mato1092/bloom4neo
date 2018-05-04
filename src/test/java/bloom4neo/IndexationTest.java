@@ -13,7 +13,8 @@ public class IndexationTest
 {
     // This rule starts a Neo4j instance for us
     @Rule
-    public Neo4jRule neo4j = new Neo4jRule();
+    public Neo4jRule neo4j = new Neo4jRule()
+            .withProcedure(Indexer.class);
 
     
     @Test
