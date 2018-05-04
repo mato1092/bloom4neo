@@ -3,11 +3,14 @@ package bloom4neo;
 import bloom4neo.util.BloomFilter;
 import bloom4neo.util.CycleNodesGenerator;
 import bloom4neo.util.IndexGenerator;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.impl.transaction.log.ReadAheadChannel;
 import org.neo4j.procedure.*;
 
+import java.util.ArrayList;
 import java.util.stream.Stream;
 
 
@@ -44,6 +47,10 @@ public class Indexer {
 									 @Name("endNode") Node endNode) {
 		BloomFilter filter = new BloomFilter();
 
+		if(startNode.getId() == endNode.getId()){
+			Stream<Reachability> result = Stream.of(new Reachability(true));
+			return result;
+		}
 		//TODO [CYCLE] same cylce? return true
 
 		//check direct connection
@@ -54,7 +61,7 @@ public class Indexer {
 		if(startNode.hasProperty("Lout")){
 			filterValue = startNode.getProperty("Lout").toString();
 		} else {
-			//TODO throw exception
+			//TODO throw exception - not indexed
 		}
 		nodeId = Long.toString(endNode.getId());
 		//endNode in lout?
@@ -63,11 +70,11 @@ public class Indexer {
 			return result;
 		}
 
-		//checking lout of startNode
+		//checking lin of startNode
 		if(endNode.hasProperty("Lin")){
 			filterValue = endNode.getProperty("Lin").toString();
 			} else {
-			//TODO throw exception
+			//TODO throw exception - not indexed
 		}
 		nodeId = Long.toString(startNode.getId());
 		//startNode in lin?
@@ -76,11 +83,67 @@ public class Indexer {
 			return result;
 		}
 
+		//so far true, lets check children (BSF)
+		ArrayList<Long> visited = new ArrayList<>();
+		ArrayList<Node> adjacentsList = new ArrayList<>();
+
+		Iterable<Relationship> children = startNode.getRelationships(Direction.OUTGOING);
+		for(Relationship r : children){
+			Node n = r.getEndNode();
+			adjacentsList.add(n);
+		}
+
+		//BSF
+		while(adjacentsList.size()>0){
+			Node curNode = adjacentsList.get(0);
+			adjacentsList.remove(0);
+			children = curNode.getRelationships(Direction.OUTGOING);
+
+			if(curNode.getId() == endNode.getId()){
+				Stream<Reachability> result = Stream.of(new Reachability(true));
+				return result;
+			}
+
+			for(Relationship r : children){
+				Node m = r.getEndNode();
+				if(!visited.contains(m.getId())){
+					visited.add(m.getId());
+					adjacentsList.add(m);
+
+					//check reachability of m
+					//checking if m is in Lin of endNode
+					if(endNode.hasProperty("Lin")){
+						filterValue = endNode.getProperty("Lin").toString();
+					} else {
+						//TODO throw exception - not indexed
+					}
+					nodeId = Long.toString(m.getId());
+					if(!filter.check(nodeId, filterValue)){
+						Stream<Reachability> result = Stream.of(new Reachability(false));
+						return result;
+					}
+
+					//checking if endNode is in Lout of m
+					if(m.hasProperty("Lout")){
+						filterValue = m.getProperty("Lout").toString();
+					} else {
+						//TODO throw exception - not indexed
+					}
+					nodeId = Long.toString(endNode.getId());
+					if(!filter.check(nodeId, filterValue)){
+						Stream<Reachability> result = Stream.of(new Reachability(false));
+						return result;
+					}
 
 
+				}
+			}
 
-		Stream<Reachability> result = Stream.of(new Reachability(true));
-		return result;
+		}
+
+
+		System.out.println("ERROR");
+		return null;
 	}
 
 	//neo4j need a class, returns of procedures have to be streams

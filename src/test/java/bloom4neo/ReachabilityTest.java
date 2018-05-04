@@ -15,9 +15,17 @@ public class ReachabilityTest {
     public Neo4jRule neo4j = new Neo4jRule()
             .withProcedure(Indexer.class);
 
+    //TODO Test cases:
+    /*
+    - Tree
+    - Begin in Cycle ;  End in Cylce
+    - Begin in Cylce ; End in NonCycle
+    - Begin in NonCycle; Go through cylce ; End in NonCycle
+     */
+
 
     @Test
-    public void reachabilitySimpleGraph() throws Throwable {
+    public void reachabilitySimpleGraphSameNode() throws Throwable {
 
         // In a try-block, to make sure we close the driver and session after the test
         try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
@@ -50,8 +58,39 @@ public class ReachabilityTest {
                     .get("out")
                     .asBoolean();
             assertTrue(out);
+        }
 
-            out = session.run("MATCH (n:Node{name:1}) " +
+    }
+
+    @Test
+    public void reachabilitySimpleGraphDirectConnection() throws Throwable {
+
+        // In a try-block, to make sure we close the driver and session after the test
+        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
+                .withEncryptionLevel( Config.EncryptionLevel.NONE ).toConfig() );
+            Session session = driver.session() )
+        {
+
+            String create = "create (a:Node{name:1})\n" +
+                    "create (b:Node{name:2})\n" +
+                    "create (c:Node{name:3})\n" +
+                    "create (d:Node{name:4})\n" +
+                    "create (e:Node{name:5})\n" +
+                    "create (f:Node{name:6})\n" +
+                    "create (g:Node{name:7})\n" +
+                    "create (h:Node{name:8})\n" +
+                    "create (i:Node{name:9})\n" +
+                    "create (j:Node{name:10})\n" +
+                    "create (a)-[:HAS]->(b)-[:HAS]->(c)-[:HAS]->(d)\n" +
+                    "create (e)-[:HAS]->(f)-[:HAS]->(g)-[:HAS]->(h)\n" +
+                    "create (i)-[:HAS]->(c)\n" +
+                    "create (j)-[:HAS]->(e)\n" +
+                    "create (i)-[:HAS]->(f)";
+
+            session.run(create);
+            session.run("CALL createIndex()");
+
+            Boolean out = session.run("MATCH (n:Node{name:1}) " +
                     "MATCH(m:Node{name:2}) CALL checkReachability(n,m) YIELD out RETURN out")
                     .next()
                     .get("out")
@@ -60,6 +99,45 @@ public class ReachabilityTest {
         }
 
     }
+
+    @Test
+    public void reachabilitySimpleGraphList() throws Throwable {
+
+        // In a try-block, to make sure we close the driver and session after the test
+        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
+                .withEncryptionLevel( Config.EncryptionLevel.NONE ).toConfig() );
+            Session session = driver.session() )
+        {
+
+            String create = "create (a:Node{name:1})\n" +
+                    "create (b:Node{name:2})\n" +
+                    "create (c:Node{name:3})\n" +
+                    "create (d:Node{name:4})\n" +
+                    "create (e:Node{name:5})\n" +
+                    "create (f:Node{name:6})\n" +
+                    "create (g:Node{name:7})\n" +
+                    "create (h:Node{name:8})\n" +
+                    "create (i:Node{name:9})\n" +
+                    "create (j:Node{name:10})\n" +
+                    "create (a)-[:HAS]->(b)-[:HAS]->(c)-[:HAS]->(d)\n" +
+                    "create (e)-[:HAS]->(f)-[:HAS]->(g)-[:HAS]->(h)\n" +
+                    "create (i)-[:HAS]->(c)\n" +
+                    "create (j)-[:HAS]->(e)\n" +
+                    "create (i)-[:HAS]->(f)";
+
+            session.run(create);
+            session.run("CALL createIndex()");
+
+            Boolean out = session.run("MATCH (n:Node{name:1}) " +
+                    "MATCH(m:Node{name:4}) CALL checkReachability(n,m) YIELD out RETURN out")
+                    .next()
+                    .get("out")
+                    .asBoolean();
+            assertTrue(out);
+        }
+
+    }
+
 
     @Test
     public void rechabilitySimpleGraphWithCylce() throws Throwable {
