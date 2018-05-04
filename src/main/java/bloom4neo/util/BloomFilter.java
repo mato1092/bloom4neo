@@ -37,7 +37,10 @@ public class BloomFilter {
 	 */
 	public boolean check(String n, String value) {
 		int index = this.getIndex(n);
-
+		//todo same problem
+		if(value.equals("")){
+			value = "00000000";
+		}
 		if (value.charAt(index) == '1') return true;
 		return false;
 	}

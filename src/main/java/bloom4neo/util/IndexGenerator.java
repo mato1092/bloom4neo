@@ -43,7 +43,7 @@ public abstract class IndexGenerator {
 			if(n.hasProperty("Lout")){
 				filterValue = n.getProperty("Lout").toString();
 			}
-			n.setProperty("Lout", filterValue);
+			n.setProperty("Lout", filter.add(nodeId, filterValue));
 
 			while(adjacentsList.size() > 0){
 				Node curNode = adjacentsList.get(0);
@@ -63,7 +63,7 @@ public abstract class IndexGenerator {
 							//todo if the node in a cycle --> "superNode"
 						} else {
 							//set values
-							nodeId = Long.toString(curNode.getId());
+							nodeId = Long.toString(n.getId());
 							filterValue = "";
 							if(r.getEndNode().hasProperty("Lin")){
 								filterValue = r.getEndNode().getProperty("Lin").toString();
@@ -81,13 +81,12 @@ public abstract class IndexGenerator {
 							//set values
 							nodeId = Long.toString(r.getEndNodeId());
 							filterValue = "";
-							if(r.getEndNode().hasProperty("Lout")){
-								filterValue = curNode.getProperty("Lout").toString();
+							if(n.hasProperty("Lout")){
+								filterValue = n.getProperty("Lout").toString();
 							}
 
 							//adding to filter
-							r.getEndNode()
-									.setProperty("Lout", filter.add(nodeId, filterValue));
+							n.setProperty("Lout", filter.add(nodeId, filterValue));
 						}
 					}
 				}

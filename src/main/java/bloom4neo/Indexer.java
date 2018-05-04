@@ -1,5 +1,6 @@
 package bloom4neo;
 
+import bloom4neo.util.BloomFilter;
 import bloom4neo.util.CycleNodesGenerator;
 import bloom4neo.util.IndexGenerator;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
 
 
 public class Indexer {
-
+	//TODO config for all node propertys ... example Lout, Lin , etc. ...
 	@Context
 	public GraphDatabaseService dbs;
 
@@ -41,8 +42,44 @@ public class Indexer {
 	@Description("Checking Reachability of to nodes")
 	public Stream<Reachability> checkReachability(@Name("startNode") Node startNode,
 									 @Name("endNode") Node endNode) {
-		// TODO:
-		Stream<Reachability> result = Stream.of(new Reachability(false));
+		BloomFilter filter = new BloomFilter();
+
+		//TODO [CYCLE] same cylce? return true
+
+		//check direct connection
+		String filterValue = "";
+		String nodeId = "";
+
+		//checking lout of startNode
+		if(startNode.hasProperty("Lout")){
+			filterValue = startNode.getProperty("Lout").toString();
+		} else {
+			//TODO throw exception
+		}
+		nodeId = Long.toString(endNode.getId());
+		//endNode in lout?
+		if(!filter.check(nodeId, filterValue)){
+			Stream<Reachability> result = Stream.of(new Reachability(false));
+			return result;
+		}
+
+		//checking lout of startNode
+		if(endNode.hasProperty("Lin")){
+			filterValue = endNode.getProperty("Lin").toString();
+			} else {
+			//TODO throw exception
+		}
+		nodeId = Long.toString(startNode.getId());
+		//startNode in lin?
+		if(!filter.check(nodeId, filterValue)){
+			Stream<Reachability> result = Stream.of(new Reachability(false));
+			return result;
+		}
+
+
+
+
+		Stream<Reachability> result = Stream.of(new Reachability(true));
 		return result;
 	}
 

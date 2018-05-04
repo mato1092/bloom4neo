@@ -17,7 +17,7 @@ public class ReachabilityTest {
 
 
     @Test
-    public void indexationSimpleGraph() throws Throwable {
+    public void reachabilitySimpleGraph() throws Throwable {
 
         // In a try-block, to make sure we close the driver and session after the test
         try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
@@ -42,17 +42,27 @@ public class ReachabilityTest {
                     "create (i)-[:HAS]->(f)";
 
             session.run(create);
+            session.run("CALL createIndex()");
 
+            Boolean out = session.run("MATCH (n:Node{name:1}) " +
+                            "MATCH(m:Node{name:1}) CALL checkReachability(n,m) YIELD out RETURN out")
+                    .next()
+                    .get("out")
+                    .asBoolean();
+            assertTrue(out);
 
-            String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
-            //assertTrue(Integer.parseInt(count) == 10);
-            assertTrue(true);
+            out = session.run("MATCH (n:Node{name:1}) " +
+                    "MATCH(m:Node{name:2}) CALL checkReachability(n,m) YIELD out RETURN out")
+                    .next()
+                    .get("out")
+                    .asBoolean();
+            assertTrue(out);
         }
 
     }
 
     @Test
-    public void indexationSimpleGraphWithCylce() throws Throwable {
+    public void rechabilitySimpleGraphWithCylce() throws Throwable {
 
         // In a try-block, to make sure we close the driver and session after the test
         try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
