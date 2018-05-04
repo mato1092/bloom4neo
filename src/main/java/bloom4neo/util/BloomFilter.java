@@ -18,6 +18,10 @@ public class BloomFilter {
 	 * @return new value of bloomfilter after adding n
 	 */
 	public String add(String n, String value) {
+		//todo handle it
+		if(value.equals("")){
+			value = "00000000";
+		}
 		int index = this.getIndex(n);
 		StringBuilder result = new StringBuilder(value);
 		result.setCharAt(index, '1');

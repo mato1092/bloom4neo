@@ -13,7 +13,7 @@ public class BloomFilterTest {
 		BloomFilter filter = new BloomFilter();
 		String L_in = "00000000";
 		L_in = filter.add("12", L_in);
-		//assertEquals(true, filter.check("12", L_in));
+		assertEquals(true, filter.check("12", L_in));
 		
 	}
 	
@@ -22,8 +22,8 @@ public class BloomFilterTest {
 		BloomFilter filter = new BloomFilter();
 		String L_in = "00000000";
 		L_in = filter.add("12", L_in);
-		//assertEquals(false, filter.check("3", L_in));
-		
+		assertEquals(false, filter.check("3", L_in));
+
 	}
 
 }
