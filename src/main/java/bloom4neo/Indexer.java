@@ -1,14 +1,18 @@
 package bloom4neo;
 
+import java.util.stream.Stream;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import bloom4neo.util.CycleNodesGenerator;
 import bloom4neo.util.IndexGenerator;
 import bloom4neo.util.IndexGeneratorV2;
+import bloom4neo.util.ReachResult;
 
 public class Indexer {
 	
@@ -36,9 +40,10 @@ public class Indexer {
 	 * @param endNode
 	 */
 	@Procedure(name = "checkReachability", mode = Mode.READ)
-	public Boolean procedure_checkReachability(Node startNode, Node endNode) {
+	public Stream<ReachResult> procedure_checkReachability(@Name("startNode") Node startNode, @Name("endNode") Node endNode) {
 		// TODO:
-		return false;
+		ReachResult result = new ReachResult(false);
+		return (Stream<ReachResult>) result;
 	}
 	
 

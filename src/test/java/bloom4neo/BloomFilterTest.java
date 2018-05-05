@@ -28,6 +28,14 @@ public class BloomFilterTest {
 		BigInteger result = new BigInteger(bfResult);
 		// assert: bfResult == (11111)
 		assertEquals(true, result.compareTo(BigInteger.valueOf(31)) == 0);
+		// bf1: (11111)
+		bf1 = BigInteger.valueOf(31).toByteArray();
+		// bf2: (01010)
+		bf2 = BigInteger.valueOf(10).toByteArray();
+		bfResult = BloomFilter.addBFs(bf1, bf2);
+		result = new BigInteger(bfResult);
+		// assert: bfResult == (11111)
+		assertEquals(true, result.compareTo(BigInteger.valueOf(31)) == 0);
 	}
 
 }

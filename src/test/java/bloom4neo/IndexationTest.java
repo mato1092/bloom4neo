@@ -44,8 +44,9 @@ public class IndexationTest
 
             session.run(create);
             
-            // TODO: how to call the indexing procedure?   
-            // session.run("CALL createIndex");
+
+            session.run("CALL createIndex");
+
 
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
             assertTrue(Integer.parseInt(count) == 10);
@@ -81,7 +82,8 @@ public class IndexationTest
                     "create (g)-[:HAS]->(j)";
 
             session.run(create);
-
+            
+            session.run("CALL createIndex");
 
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
             assertTrue(Integer.parseInt(count) == 10);
