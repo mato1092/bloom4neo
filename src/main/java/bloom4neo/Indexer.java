@@ -18,6 +18,22 @@ public class Indexer {
 	//TODO config for all node propertys ... example Lout, Lin , etc. ...
 	@Context
 	public GraphDatabaseService dbs;
+	
+	
+	/**
+	 * Procedure for generating cycle-representative-nodes without 
+	 * further reachability index generation <br>
+	 * Currently just for Testing
+	 */
+	@Procedure(value = "generateCylceNodes", mode=Mode.WRITE)
+	@Description("Creates Cycle-Representative-Nodes")
+	public void procedure_GenerateCycleNodes() {
+		// 1. Detect Cycles and Create Cycle-Nodes
+		CycleNodesGenerator.generateCycleNodes(dbs);
+	}
+	
+	
+	
 
 	/**
 	 * Performs necessary actions to create the reachability index: <br>
