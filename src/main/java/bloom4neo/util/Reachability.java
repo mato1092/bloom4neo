@@ -1,6 +1,5 @@
 package bloom4neo.util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -12,10 +11,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 public class Reachability {
-	private List<Long> visitedNodes;
+	private Set<Long> visitedNodes;
 	
 	public Reachability() {
-		this.visitedNodes = new ArrayList<Long>();
+		this.visitedNodes = new HashSet<Long>();
 	}
 
 	/**
@@ -73,7 +72,7 @@ public class Reachability {
 		}
 		// 	if u is SCC representative, DFS through SCCs undiscovered successors
 		else {
-			List<Node> successors = new ArrayList<Node>();
+			Set<Node> successors = new HashSet<Node>();
 			Node x;
 			List<Long> memberList = Arrays.asList(ArrayUtils.toObject((long[]) u.getProperty("cycleMembers")));
 			for(Long id : memberList) {
@@ -107,7 +106,7 @@ public class Reachability {
 	}
 	
 	private void clearVisited() {
-		this.visitedNodes = new ArrayList<Long>();
+		this.visitedNodes = new HashSet<Long>();
 	}
 
 	private boolean wasVisited(Node n) {
