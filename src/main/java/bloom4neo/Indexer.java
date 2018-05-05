@@ -43,7 +43,7 @@ public class Indexer {
 	public Stream<ReachResult> procedure_checkReachability(@Name("startNode") Node startNode, @Name("endNode") Node endNode) {
 		// TODO:
 		ReachResult result = new ReachResult(false);
-		return (Stream<ReachResult>) result;
+		return Stream.of(result);
 	}
 	
 

@@ -140,24 +140,34 @@ public class BloomFilter {
 	 */
 	private static byte[] computeNodeBF(Node n, int size, Direction d) {
 		byte[] bf = new byte[size];
-		String property = "Lin";
+		String property;
 		if(d == Direction.OUTGOING) {
 			property = "Lout";
+		}
+		else {
+			property = "Lin";
 		}
 		// if n neither member nor representative of an SCC
 		if (!n.hasProperty("cycleRepID") && !n.hasProperty("cycleMembers")) {
 			Node v;
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
-			byte[] bfV;
-			for(Relationship r : n.getRelationships(d)) {
-				v = r.getEndNode();
-				if(!v.hasProperty(property)) {
-					bfV = computeNodeBF(v, size, d);
+			if(n.getDegree(d) != 0) {
+				byte[] bfV;
+				for(Relationship r : n.getRelationships(d)) {
+					if(d == Direction.OUTGOING) {
+						v = r.getEndNode();
+					}
+					else {
+						v = r.getStartNode();
+					}
+					if(!v.hasProperty(property)) {
+						bfV = computeNodeBF(v, size, d);
+					}
+					else {
+						bfV = (byte[]) v.getProperty(property);
+					}
+					bf = addBFs(bf, bfV);
 				}
-				else {
-					bfV = (byte[]) v.getProperty(property);
-				}
-				bf = addBFs(bf, bfV);
 			}
 			n.setProperty(property, bf);
 		}
@@ -180,9 +190,7 @@ public class BloomFilter {
 				if(!v.hasProperty(property)) {
 					bfV = computeNodeBF(v, size, d);
 				}
-				else {
-					bfV = (byte[]) v.getProperty(property);
-				}
+				bfV = (byte[]) v.getProperty(property);
 				bf = addBFs(bf, bfV);
 			}	
 			n.setProperty(property, bf);		

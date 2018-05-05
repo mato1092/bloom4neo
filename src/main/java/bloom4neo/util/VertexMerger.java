@@ -88,11 +88,11 @@ public class VertexMerger {
 			resultList.add(new ArrayList<Long>());
 		}
 		int mergeCount = -1;
-		for(int i = 1; i < this.postOrder.size(); i++) {
+		for(int i = 1; i <= this.postOrder.size(); i++) {
 			if(i % this.groupSize == 1) {
 				mergeCount++;			
 			}
-			resultList.get(mergeCount).add(this.postOrder.get(i));
+			resultList.get(mergeCount).add(this.postOrder.get(i-1));
 		}
 		Map<Long, List<Long>> mergeToNode = new HashMap<Long, List<Long>>();
 		for(List<Long> nodeList : resultList) {
