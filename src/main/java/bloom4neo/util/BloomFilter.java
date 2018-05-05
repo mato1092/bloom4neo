@@ -2,13 +2,10 @@ package bloom4neo.util;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -158,23 +155,7 @@ public class BloomFilter {
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
 			if((long) n.getProperty(cycleDegree) != 0) {
 				// set of outgoing or incoming neighbours of the SCC of n
-				Set<Node> nextNodes = new HashSet<Node>();
-				GraphDatabaseService dbs = n.getGraphDatabase();
-				List<Long> sccMembers = Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers")));
-				for(Long nodeID : sccMembers) {
-					for(Relationship r: dbs.getNodeById(nodeID).getRelationships(d)) {
-						if(d == Direction.OUTGOING) {
-							if(!sccMembers.contains(r.getEndNodeId())) {
-								nextNodes.add(r.getEndNode());						
-							}
-						}
-						else {
-							if(!sccMembers.contains(r.getStartNodeId())) {
-								nextNodes.add(r.getStartNode());						
-							}
-						}
-					}
-				}
+				Set<Node> nextNodes = CycleNodesGenerator.findNeighbours(n, d);
 				byte[] bfV;
 				for(Node v : nextNodes) {
 					if(!v.hasProperty(property)) {

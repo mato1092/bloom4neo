@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Zoltan <br> <br>
  * WIP VertexMerging algorithm <br>
  * Constructor gets post order, sets merge group size groupSize and no. of groups d <br>
  * merge() computes vertex merging and returns a Map<mergeID, List<nodeIDs>> mapping merged nodeIDs to their mergeID

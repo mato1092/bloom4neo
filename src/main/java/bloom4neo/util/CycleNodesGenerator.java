@@ -1,9 +1,14 @@
 package bloom4neo.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -110,6 +115,35 @@ public abstract class CycleNodesGenerator {
 		for (Node n: dbs.getAllNodes()) {
 			System.out.println(n.getAllProperties().toString());
 		}
+	}
+	
+	/**
+	 * Finds all neighbours of the cycle represented by n in the direction d
+	 * @param n cycle representative
+	 * @param d direction
+	 * @return set of neighbours
+	 */
+	public static Set<Node> findNeighbours(Node n, Direction d){
+		Set<Node> neighbours = new HashSet<Node>();
+		Node v;
+		GraphDatabaseService dbs = n.getGraphDatabase();
+		List<Long> memberList = Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers")));
+		for(Long id : memberList) {
+			v = dbs.getNodeById(id);
+			for(Relationship r : v.getRelationships(d)) {
+				if(d == Direction.OUTGOING) {
+					if(!memberList.contains(r.getEndNodeId())) {
+						neighbours.add(r.getEndNode());						
+					}
+				}
+				else {
+					if(!memberList.contains(r.getStartNodeId())) {
+						neighbours.add(r.getStartNode());						
+					}
+				}
+			}
+		}
+		return neighbours;
 	}
 
 }

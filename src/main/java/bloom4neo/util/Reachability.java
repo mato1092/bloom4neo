@@ -72,17 +72,7 @@ public class Reachability {
 		}
 		// 	if u is SCC representative, DFS through SCCs undiscovered successors
 		else {
-			Set<Node> successors = new HashSet<Node>();
-			Node x;
-			List<Long> memberList = Arrays.asList(ArrayUtils.toObject((long[]) u.getProperty("cycleMembers")));
-			for(Long id : memberList) {
-				x = u.getGraphDatabase().getNodeById(id);
-				for(Relationship r : x.getRelationships(Direction.OUTGOING)) {
-					if(!memberList.contains(r.getEndNodeId())) {
-						successors.add(r.getEndNode());
-					}
-				}
-			}
+			Set<Node> successors = CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING);
 			for(Node s : successors) {
 				if(!wasVisited(s)) {
 					addVisited(s);

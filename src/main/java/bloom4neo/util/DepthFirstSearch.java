@@ -52,20 +52,12 @@ public class DepthFirstSearch {
 		incrementCurrent();
 		// if n representative of an SCC
 		if(n.hasProperty("cycleMembers")) {
-			Set<Node> outList = new HashSet<Node>();
+			Set<Node> outList = CycleNodesGenerator.findNeighbours(n, Direction.OUTGOING);
 			n.setProperty("Ldis", getCurrent());
-			Node v;
-			List<Long> memberList = Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers")));
-			for(Long id : memberList) {
-				v = dbs.getNodeById(id);
-				// if indexing info should be stored on SCC members, remove comment from next line
+			// if indexing info should be stored on SCC members, remove comment from next loop
+//			for(Node v : outList) {
 //				v.setProperty("Ldis", getCurrent());
-				for(Relationship r : v.getRelationships(Direction.OUTGOING)) {
-					if(!memberList.contains(r.getEndNodeId())) {
-						outList.add(r.getEndNode());
-					}
-				}
-			}
+//			}
 			for(Node outNode : outList) {
 				if(!outNode.hasProperty("Ldis")) {
 					DFSVisit(outNode);
