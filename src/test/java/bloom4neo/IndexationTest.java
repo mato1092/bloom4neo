@@ -88,8 +88,10 @@ public class IndexationTest
             session.run("CALL createIndex");
 
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
-            assertTrue(Integer.parseInt(count) == 10);
-            count = session.run("match(n) where exists (n.cyclceId) return count(n)").next().get("count(n)").toString();
+            // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
+            assertTrue(Integer.parseInt(count) == 7);
+            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").toString();
+            // count should be 4 because 4 nodes (4, 5, 6, 9) are SCC members
             assertTrue(Integer.parseInt(count) == 4);
 
         }

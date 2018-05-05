@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -115,10 +116,8 @@ public class BloomFilter {
 	/**
 	 * Computes and stores Lin & Lout for each indexed node in DB
 	 * @param dbs GraphDatabaseService to be used
-	 * @param s number of Bloom filter indices
 	 */
 	public static void computeBFs(GraphDatabaseService dbs) {
-		// Size of each Lin and Lout in bytes: s/8 rounded up
 		for(Node n : dbs.getAllNodes()) {
 			if(!n.hasProperty("Lout")) {
 				computeNodeBF(n, Direction.OUTGOING);
@@ -157,11 +156,11 @@ public class BloomFilter {
 		// if n representative of an SCC
 		if(n.hasProperty("cycleMembers")){
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
-			if((int) n.getProperty(cycleDegree) != 0) {
+			if((long) n.getProperty(cycleDegree) != 0) {
 				// set of outgoing or incoming neighbours of the SCC of n
 				Set<Node> nextNodes = new HashSet<Node>();
 				GraphDatabaseService dbs = n.getGraphDatabase();
-				List<Long> sccMembers = Arrays.asList((Long[]) n.getProperty("cycleMembers"));
+				List<Long> sccMembers = Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers")));
 				for(Long nodeID : sccMembers) {
 					for(Relationship r: dbs.getNodeById(nodeID).getRelationships(d)) {
 						if(d == Direction.OUTGOING) {

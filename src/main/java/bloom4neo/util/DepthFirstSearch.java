@@ -1,10 +1,12 @@
 package bloom4neo.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -32,7 +34,7 @@ public class DepthFirstSearch {
 				 * 	or (n is SCC representative and SCC has no incoming relationships)
 				 */
 				if( ( !n.hasProperty("cycleMembers") && n.getDegree(Direction.INCOMING) == 0 )
-						|| ( n.hasProperty("cycleMembers") && (int) n.getProperty("inDegree") == 0) ) {
+						|| ( n.hasProperty("cycleMembers") && (long) n.getProperty("inDegree") == 0) ) {
 					
 					DFSVisit(n);
 					
@@ -48,8 +50,44 @@ public class DepthFirstSearch {
 	private void DFSVisit(Node n) {
 		
 		incrementCurrent();
-		// if n not member or representative of an SCC
-		if ( !n.hasProperty("cycleRepID") && !n.hasProperty("cycleMembers") ) {
+		// if n representative of an SCC
+		if(n.hasProperty("cycleMembers")) {
+			Set<Node> outList = new HashSet<Node>();
+			n.setProperty("Ldis", getCurrent());
+			Node v;
+			List<Long> memberList = Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers")));
+			for(Long id : memberList) {
+				v = dbs.getNodeById(id);
+				// if indexing info should be stored on SCC members, remove comment from next line
+//				v.setProperty("Ldis", getCurrent());
+				for(Relationship r : v.getRelationships(Direction.OUTGOING)) {
+					if(!memberList.contains(r.getEndNodeId())) {
+						outList.add(r.getEndNode());
+					}
+				}
+			}
+			for(Node outNode : outList) {
+				if(!outNode.hasProperty("Ldis")) {
+					DFSVisit(outNode);
+				}
+			}
+			postOrder.add(n.getId());
+			long cur = incrementCurrent();
+			n.setProperty("Lfin", cur);
+			// if indexing info should be stored on SCC members, remove comment from next loop
+//			for(Long id : memberList) {
+//				dbs.getNodeById(id).setProperty("Lfin", cur);
+//			}
+		}
+		// if n member of an SCC
+		else if(n.hasProperty("cycleRepID")) {
+			Node cRep = dbs.getNodeById((long) n.getProperty("cycleRepID"));
+			if(!cRep.hasProperty("Ldis")) {
+				DFSVisit(cRep);
+			}
+		}
+		// if n not part of an SCC
+		else {
 			n.setProperty("Ldis", getCurrent());
 			Node v;
 			for(Relationship r : n.getRelationships(Direction.OUTGOING)) {
@@ -61,36 +99,6 @@ public class DepthFirstSearch {
 			addToPostOrder(n.getId());
 			incrementCurrent();
 			n.setProperty("Lfin", getCurrent());
-		}
-		else {
-			Node cRep = n;
-			if(!n.hasProperty("cycleMembers")) {
-				cRep = dbs.getNodeById((long) n.getProperty("cycleRepID"));
-			}
-			Set<Node> outList = new HashSet<Node>();
-			cRep.setProperty("Ldis", getCurrent());
-			Node v;
-			long[] memberList = (long[]) cRep.getProperty("cycleMembers");
-			for(Long id : memberList) {
-				v = dbs.getNodeById(id);
-				// if indexing info should be stored on SCC members, remove comment from next line
-//				v.setProperty("Ldis", getCurrent());
-				for(Relationship r : v.getRelationships(Direction.OUTGOING)) {
-					outList.add(r.getEndNode());
-				}
-			}
-			for(Node outNode : outList) {
-				if(!outNode.hasProperty("Ldis")) {
-					DFSVisit(outNode);
-				}
-			}
-			postOrder.add(cRep.getId());
-			long cur = incrementCurrent();
-			cRep.setProperty("Lfin", cur);
-			// if indexing info should be stored on SCC members, remove comment from next loop
-//			for(Long id : memberList) {
-//				dbs.getNodeById(id).setProperty("Lfin", cur);
-//			}
 		}
 	}
 	
