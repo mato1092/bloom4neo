@@ -17,7 +17,7 @@ public class BloomFilter {
 	
 	
 	/**
-	 * Adds two Bloom filters by bitwise OR and returns the result as String 
+	 * Adds two Bloom filters by bitwise OR
 	 * @param bf1 1st Bloom filter in byte array form
 	 * @param bf2 2nd Bloom filter in byte array form
 	 * @return result of bitwise OR of the 2 Bloom filters
@@ -39,6 +39,12 @@ public class BloomFilter {
 		return filter.setBit(bfID).toByteArray();
 	}
 	
+	/**
+	 * Checks whether the bit at a specific index is set in a Bloom filter
+	 * @param index index to be checked
+	 * @param bf Bloom filter
+	 * @return true if set, false otherwise
+	 */
 	public static boolean checkBit(int index, byte[] bf) {
 		BigInteger bInt = new BigInteger(bf);
 		return bInt.testBit(index);
@@ -46,13 +52,13 @@ public class BloomFilter {
 	
 	/**
 	 * Bloom filter-based reachability query: does a path 1~>2 exist?
-	 * return true: path possibly exists
-	 * return false: path does not exist
+	 * path possibly exists: return true;
+	 * path does not exist: return false
 	 * 
-	 * @param lin1	Lin of 1st vertex
-	 * @param lout1	Lout of 1st vertex
-	 * @param lin2	Lin of 2nd vertex
-	 * @param lout2	Lout of 2nd vertex
+	 * @param lin1	Lin of 1st node
+	 * @param lout1	Lout of 1st node
+	 * @param lin2	Lin of 2nd node
+	 * @param lout2	Lout of 2nd node
 	 * @return result of reachability query
 	 */
 	
@@ -70,15 +76,14 @@ public class BloomFilter {
 		if( out2.andNot(out1).compareTo(BigInteger.ZERO) != 0 || in1.andNot(in2).compareTo(BigInteger.ZERO) != 0 ) {
 			return false;
 		}
-		
-		return true;
+		else return true;
 	}
 	
 	/**
 	 * Computes BF indices for all nodes in graph based on mergeMap from VertexMerger.
 	 * Returns list of lists of nodes; each index corresponds to a BF index:
 	 * bfLists.get(i) will give the list of nodeIDs hashed to BF index i
-	 * @param mergeMap Map<mergeID, List<nodeID>> given by VertexMerger
+	 * @param mergeMap Map(mergeID, List(nodeID)) given by VertexMerger
 	 * @return bfLists
 	 */
 	public static List<List<Long>> doBFHash(Map<Long, List<Long>> mergeMap) {
@@ -112,18 +117,17 @@ public class BloomFilter {
 	 * @param dbs GraphDatabaseService to be used
 	 * @param s number of Bloom filter indices
 	 */
-	public static void computeBFs(GraphDatabaseService dbs, int s) {
+	public static void computeBFs(GraphDatabaseService dbs) {
 		// Size of each Lin and Lout in bytes: s/8 rounded up
-		int size = (s+7)/8;
 		for(Node n : dbs.getAllNodes()) {
 			if(!n.hasProperty("Lout")) {
-				computeNodeBF(n, size, Direction.OUTGOING);
+				computeNodeBF(n, Direction.OUTGOING);
 			}
 		}
 
 		for(Node n : dbs.getAllNodes()) {
 			if(!n.hasProperty("Lin")) {
-				computeNodeBF(n, size, Direction.INCOMING);
+				computeNodeBF(n, Direction.INCOMING);
 			}
 		}
 		
@@ -134,12 +138,11 @@ public class BloomFilter {
 	 * d determines the direction of the algorithm: Direction.INCOMING computes Lin, Direction.OUTGOING computes Lout
 	 * Bloom filters of SCCs are only stored on cycle representatives
 	 * @param n node
-	 * @param size Bloom filter size (in bytes)
 	 * @param d direction of search
 	 * @return Bloom filter Lout or Lin depending on d
 	 */
-	private static byte[] computeNodeBF(Node n, int size, Direction d) {
-		byte[] bf = new byte[size];
+	private static byte[] computeNodeBF(Node n, Direction d) {
+		byte[] bf = new byte[]{0};
 		String property;
 		String cycleDegree;
 		if(d == Direction.OUTGOING) {
@@ -176,7 +179,7 @@ public class BloomFilter {
 				byte[] bfV;
 				for(Node v : nextNodes) {
 					if(!v.hasProperty(property)) {
-						bfV = computeNodeBF(v, size, d);
+						bfV = computeNodeBF(v, d);
 					}
 					bfV = (byte[]) v.getProperty(property);
 					bf = addBFs(bf, bfV);
@@ -188,7 +191,7 @@ public class BloomFilter {
 		else if(n.hasProperty("cycleRepID")){
 			Node cRep = n.getGraphDatabase().getNodeById((long) n.getProperty("cycleRepID"));
 			if(!cRep.hasProperty(property)) {
-				bf = computeNodeBF(cRep, size, d);
+				bf = computeNodeBF(cRep, d);
 			}
 			else bf = (byte[]) cRep.getProperty(property);
 		}
@@ -206,7 +209,7 @@ public class BloomFilter {
 						v = r.getStartNode();
 					}
 					if(!v.hasProperty(property)) {
-						bfV = computeNodeBF(v, size, d);
+						bfV = computeNodeBF(v, d);
 					}
 					else {
 						bfV = (byte[]) v.getProperty(property);

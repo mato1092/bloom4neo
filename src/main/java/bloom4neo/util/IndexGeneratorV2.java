@@ -37,7 +37,7 @@ public class IndexGeneratorV2 extends IndexGenerator {
 			}
 		}
 		// Step 4: Computing Lin and Lout for each node
-		BloomFilter.computeBFs(dbs, s);
+		BloomFilter.computeBFs(dbs);
 		
 	}
 	
