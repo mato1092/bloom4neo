@@ -37,12 +37,17 @@ public class CycleNodesGeneratorTest {
                     "create (h:Node{name:8})\n" +
                     "create (i:Node{name:9})\n" +
                     "create (j:Node{name:10})\n" +
+                    "create (k:Node{name:11})\n" +
+                    "create (l:Node{name:12})\n" +
+                    "create (m:Node{name:13})\n" +
+                    "create (n:Node{name:14})\n" +
                     "create (a)-[:HAS]->(b)-[:HAS]->(c)-[:HAS]->(d)\n" +
                     "create (e)-[:HAS]->(f)-[:HAS]->(g)-[:HAS]->(h)\n" +
                     "create (i)-[:HAS]->(c)\n" +
                     "create (j)-[:HAS]->(e)\n" +
                     "create (i)-[:HAS]->(f)\n" +
-                    "create (g)-[:HAS]->(j)";
+                    "create (g)-[:HAS]->(j)" + 
+        			"create (k)-[:HAS]->(l)-[:HAS]->(m)-[:HAS]->(n)-[:HAS]->(k)\n";
 
             session.run(create);
             session.run("CALL generateCylceNodes()");
