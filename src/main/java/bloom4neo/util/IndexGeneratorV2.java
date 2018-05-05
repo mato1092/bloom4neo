@@ -15,6 +15,8 @@ public class IndexGeneratorV2 extends IndexGenerator {
 	 * Step 3: Use hash function to compute Bloom filter index for each MergeID
 	 * Step 4: Computation of Bloom filters Lin and Lout for vertices
 	 * 
+	 * Indexing info (long Ldis, Lfin;  int BFID; byte[] Lout, Lin) stored as properties on SCC representatives and non-SCC nodes.
+	 * 
 	 */
 	public static void generateIndex(GraphDatabaseService dbs) {
 		
@@ -25,8 +27,7 @@ public class IndexGeneratorV2 extends IndexGenerator {
 		VertexMerger vm = new VertexMerger(postOrder);
 		Map<Long, List<Long>> mergeMap = vm.merge();
 		// Step 3: Bloom filter hashing
-		List<List<Long>> bfLists;
-		bfLists = BloomFilter.doBFHash(mergeMap);
+		List<List<Long>> bfLists = BloomFilter.doBFHash(mergeMap);
 		// Storing Bloom filter index to each node in DB
 		int s = bfLists.size();
 		for(int i = 0; i < s; i++) {
