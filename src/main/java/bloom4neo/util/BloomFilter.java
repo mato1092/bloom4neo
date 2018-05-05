@@ -141,11 +141,14 @@ public class BloomFilter {
 	private static byte[] computeNodeBF(Node n, int size, Direction d) {
 		byte[] bf = new byte[size];
 		String property;
+		String cycleDegree;
 		if(d == Direction.OUTGOING) {
 			property = "Lout";
+			cycleDegree = "outDegree";
 		}
 		else {
 			property = "Lin";
+			cycleDegree = "inDegree";
 		}
 		// if n neither member nor representative of an SCC
 		if (!n.hasProperty("cycleRepID") && !n.hasProperty("cycleMembers")) {
@@ -174,25 +177,34 @@ public class BloomFilter {
 		// if n representative of an SCC
 		else if(n.hasProperty("cycleMembers")){
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
-			// set of outgoing or incoming neighbours of the SCC of n
-			Set<Node> nextNodes = new HashSet<Node>();
-			GraphDatabaseService dbs = n.getGraphDatabase();
-			List<Long> sccMembers = Arrays.asList((Long[]) n.getProperty("cycleMembers"));
-			for(Long nodeID : sccMembers) {
-				for(Relationship r: dbs.getNodeById(nodeID).getRelationships(d)) {
-					if(!sccMembers.contains(r.getEndNodeId())) {
-						nextNodes.add(r.getEndNode());						
+			if((int) n.getProperty(cycleDegree) != 0) {
+				// set of outgoing or incoming neighbours of the SCC of n
+				Set<Node> nextNodes = new HashSet<Node>();
+				GraphDatabaseService dbs = n.getGraphDatabase();
+				List<Long> sccMembers = Arrays.asList((Long[]) n.getProperty("cycleMembers"));
+				for(Long nodeID : sccMembers) {
+					for(Relationship r: dbs.getNodeById(nodeID).getRelationships(d)) {
+						if(d == Direction.OUTGOING) {
+							if(!sccMembers.contains(r.getEndNodeId())) {
+								nextNodes.add(r.getEndNode());						
+							}
+						}
+						else {
+							if(!sccMembers.contains(r.getStartNodeId())) {
+								nextNodes.add(r.getStartNode());						
+							}
+						}
 					}
 				}
+				byte[] bfV;
+				for(Node v : nextNodes) {
+					if(!v.hasProperty(property)) {
+						bfV = computeNodeBF(v, size, d);
+					}
+					bfV = (byte[]) v.getProperty(property);
+					bf = addBFs(bf, bfV);
+				}	
 			}
-			byte[] bfV;
-			for(Node v : nextNodes) {
-				if(!v.hasProperty(property)) {
-					bfV = computeNodeBF(v, size, d);
-				}
-				bfV = (byte[]) v.getProperty(property);
-				bf = addBFs(bf, bfV);
-			}	
 			n.setProperty(property, bf);		
 		}
 		// if n member of an SCC

@@ -54,7 +54,7 @@ public class IndexationTest
         }
     	
     }
-/*	//shouldnt be tested without CycleNodesGenerator - infinite loop on cycle
+	//shouldnt be tested without CycleNodesGenerator - infinite loop on cycle
     @Test
     public void indexationSimpleGraphWithCycle() throws Throwable {
 
@@ -92,5 +92,5 @@ public class IndexationTest
 
         }
 
-    }*/
+    }
 }
