@@ -44,17 +44,16 @@ public class ReachQueryTest
 
             session.run(create);
             
-
             session.run("CALL createIndex");
-
+            
             // 0~>3
-            assertTrue(session.run("CALL checkReachability(0, 3)").hasNext());
+            assertTrue(session.run("CALL checkReachability(0, 3)").list().size() == 2);
             // 8~>3
-            assertTrue(session.run("CALL checkReachability(8, 3)").hasNext());
+            assertTrue(session.run("CALL checkReachability(8, 3)").list().size() == 2);
             // 5!~>3
-            assertFalse(session.run("CALL checkReachability(5, 3)").hasNext());
+            assertFalse(session.run("CALL checkReachability(5, 3)").list().size() == 2);
             // 8!~>9
-            assertFalse(session.run("CALL checkReachability(8, 9)").hasNext());
+            assertFalse(session.run("CALL checkReachability(8, 9)").list().size() == 2);
             
         }
     	
@@ -89,13 +88,13 @@ public class ReachQueryTest
             session.run("CALL createIndex");
             
             // 0~>3
-            assertTrue(session.run("CALL checkReachability(0, 3)").hasNext());
+            assertTrue(session.run("CALL checkReachability(0, 3)").list().size() == 2);
             // 8~>3
-            assertTrue(session.run("CALL checkReachability(8, 3)").hasNext());
+            assertTrue(session.run("CALL checkReachability(8, 3)").list().size() == 2);
             // 5!~>3
-            assertFalse(session.run("CALL checkReachability(5, 3)").hasNext());;
+            assertFalse(session.run("CALL checkReachability(5, 3)").list().size() == 2);
             // 8~>9
-            assertTrue(session.run("CALL checkReachability(8, 9)").hasNext());
+            assertTrue(session.run("CALL checkReachability(8, 9)").list().size() == 2);
 
 
         }

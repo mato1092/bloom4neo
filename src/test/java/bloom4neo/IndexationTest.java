@@ -6,8 +6,6 @@ import org.neo4j.driver.v1.*;
 import org.neo4j.graphalgo.StronglyConnectedComponentsProc;
 import org.neo4j.harness.junit.Neo4jRule;
 
-
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class IndexationTest
