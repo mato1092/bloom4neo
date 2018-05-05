@@ -8,17 +8,17 @@ import org.neo4j.graphdb.GraphDatabaseService;
 public class IndexGeneratorV2 extends IndexGenerator {
 	
 	/**
-	 * Indexing algorithm based on "Reachability Querying: Can It Be Even Faster?" paper
+	 * Indexing algorithm based on "Reachability Querying: Can It Be Even Faster?" paper <br>
 	 * 
-	 * Step 1: DFS through DB to compute Ldis and Lfin of vertices and create post-order
-	 * Step 2: Vertices merging based on post-order, MergeIDs of vertices calculated
-	 * Step 3: Use hash function to compute Bloom filter index for each MergeID
-	 * Step 4: Computation of Bloom filters Lin and Lout for vertices
+	 * Step 1: DFS through DB to compute Ldis and Lfin of vertices and create post-order <br>
+	 * Step 2: Vertices merging based on post-order, MergeIDs of vertices calculated <br>
+	 * Step 3: Use hash function to compute Bloom filter index for each MergeID <br>
+	 * Step 4: Computation of Bloom filters Lin and Lout for vertices <br>
 	 * 
-	 * Indexing info: 
-	 * 	long Ldis, Lfin;  int BFID; byte[] Lout, Lin stored as properties on SCC representatives and non-SCC nodes.
-	 * 	long[] cycleMembers stored as property on SCC representatives
-	 * 	long cycleRepID stored as property on SCC members
+	 * Indexing info:  <br>
+	 * 	long Ldis, Lfin;  int BFID; byte[] Lout, Lin stored as properties on SCC representatives and non-SCC nodes. <br>
+	 * 	long[] cycleMembers stored as property on SCC representatives <br>
+	 * 	long cycleRepID, inDegree, outDegree stored as property on SCC members
 	 */
 	public static void generateIndex(GraphDatabaseService dbs) {
 		

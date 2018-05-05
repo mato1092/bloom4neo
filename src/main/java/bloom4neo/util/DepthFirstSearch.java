@@ -19,8 +19,8 @@ public class DepthFirstSearch {
 	private List<Long> postOrder;
 	
 	/**
-	 * Executes Depth-first search through DB to compute Ldis & Lfin for all nodes and the post order
-	 * Ldis and Lfin stored as properties on nodes, for SCC members they are only stored on cycle representatives
+	 * Executes Depth-first search through DB to compute Ldis & Lfin for all nodes and the post order <br>
+	 * Ldis and Lfin stored as properties on nodes, for SCC members they are only stored on cycle representatives <br>
 	 * @return post order
 	 */
 	public List<Long> executeDFS(){
