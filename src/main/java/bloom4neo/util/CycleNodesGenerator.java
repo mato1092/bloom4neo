@@ -1,4 +1,3 @@
-
 package bloom4neo.util;
 
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 
 public abstract class CycleNodesGenerator {
 	
@@ -24,7 +24,7 @@ public abstract class CycleNodesGenerator {
 	// sum # of all outgoing transitions of the members of an cycleRep
 	public static final String PROPERTY_CYCLE_REP_NODE_OUTEGREE = "outDegree";
 	// list of NodeIDs of the members in a Cycle
-	public static final String PROPERTY_CYCLE_REP_NODE_MEMBERS = "members";
+	public static final String PROPERTY_CYCLE_REP_NODE_MEMBERS = "cycleMembers";
 
 	
 	// for all non-CycleRepNodes: 
@@ -80,12 +80,23 @@ public abstract class CycleNodesGenerator {
 					// calc Properties of Cycle Rep
 					for (int i = 0; i <membersList.size(); i++) {
 						Node member = dbs.getNodeById(membersList.get(i));
-						inDegree += member.getDegree(Direction.INCOMING);
-						outDegree += member.getDegree(Direction.OUTGOING);
+						
+						// just count relationships of nodes that are not in the same cycle
+						for(Relationship r: member.getRelationships(Direction.INCOMING)) {
+							if (!membersList.contains(r.getStartNodeId())){
+								inDegree += 1;
+							}
+						}
+						for(Relationship r: member.getRelationships(Direction.OUTGOING)) {
+							if (!membersList.contains(r.getEndNodeId())){
+								outDegree += 1;
+							}
+						}
+						
 						membersArray[i] = membersList.get(i);
 						
 						// add Property to each member of the cycleRep
-						member.setProperty(PROPERTY_NODE_CYLCE_REP_NODE_ID, member.getId());
+						member.setProperty(PROPERTY_NODE_CYLCE_REP_NODE_ID, newCycleRepNode.getId());
 					}
 					
 					// add Properties to CycleRep
@@ -94,6 +105,10 @@ public abstract class CycleNodesGenerator {
 					newCycleRepNode.setProperty(PROPERTY_CYCLE_REP_NODE_MEMBERS, membersArray);
 				}	
 			}
+		}
+		
+		for (Node n: dbs.getAllNodes()) {
+			System.out.println(n.getAllProperties().toString());
 		}
 	}
 
