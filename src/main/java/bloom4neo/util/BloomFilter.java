@@ -132,9 +132,9 @@ public class BloomFilter {
 	/**
 	 * Computes Lin or Lout for a given node.
 	 * d determines the direction of the algorithm: Direction.INCOMING computes Lin, Direction.OUTGOING computes Lout
-	 * Bloom filter of SCCs are only stored on cycle representatives
+	 * Bloom filters of SCCs are only stored on cycle representatives
 	 * @param n node
-	 * @param s Bloom filter size (in bytes)
+	 * @param size Bloom filter size (in bytes)
 	 * @param d direction of search
 	 * @return Bloom filter Lout or Lin depending on d
 	 */
@@ -150,32 +150,9 @@ public class BloomFilter {
 			property = "Lin";
 			cycleDegree = "inDegree";
 		}
-		// if n neither member nor representative of an SCC
-		if (!n.hasProperty("cycleRepID") && !n.hasProperty("cycleMembers")) {
-			Node v;
-			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
-			if(n.getDegree(d) != 0) {
-				byte[] bfV;
-				for(Relationship r : n.getRelationships(d)) {
-					if(d == Direction.OUTGOING) {
-						v = r.getEndNode();
-					}
-					else {
-						v = r.getStartNode();
-					}
-					if(!v.hasProperty(property)) {
-						bfV = computeNodeBF(v, size, d);
-					}
-					else {
-						bfV = (byte[]) v.getProperty(property);
-					}
-					bf = addBFs(bf, bfV);
-				}
-			}
-			n.setProperty(property, bf);
-		}
+		
 		// if n representative of an SCC
-		else if(n.hasProperty("cycleMembers")){
+		if(n.hasProperty("cycleMembers")){
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
 			if((int) n.getProperty(cycleDegree) != 0) {
 				// set of outgoing or incoming neighbours of the SCC of n
@@ -208,12 +185,36 @@ public class BloomFilter {
 			n.setProperty(property, bf);		
 		}
 		// if n member of an SCC
-		else {
+		else if(n.hasProperty("cycleRepID")){
 			Node cRep = n.getGraphDatabase().getNodeById((long) n.getProperty("cycleRepID"));
 			if(!cRep.hasProperty(property)) {
 				bf = computeNodeBF(cRep, size, d);
 			}
 			else bf = (byte[]) cRep.getProperty(property);
+		}
+		// if n not part of an SCC
+		else {
+			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			if(n.getDegree(d) != 0) {
+				Node v;
+				byte[] bfV;
+				for(Relationship r : n.getRelationships(d)) {
+					if(d == Direction.OUTGOING) {
+						v = r.getEndNode();
+					}
+					else {
+						v = r.getStartNode();
+					}
+					if(!v.hasProperty(property)) {
+						bfV = computeNodeBF(v, size, d);
+					}
+					else {
+						bfV = (byte[]) v.getProperty(property);
+					}
+					bf = addBFs(bf, bfV);
+				}
+			}
+			n.setProperty(property, bf);
 		}
 		return bf;
 	}

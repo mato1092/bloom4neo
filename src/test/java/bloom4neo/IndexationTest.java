@@ -54,7 +54,7 @@ public class IndexationTest
         }
     	
     }
-	//shouldnt be tested without CycleNodesGenerator - infinite loop on cycle
+	// will not pass without an implemented CycleNodesGenerator: infinite recursion on cycle => stack overflow
     @Test
     public void indexationSimpleGraphWithCycle() throws Throwable {
 
