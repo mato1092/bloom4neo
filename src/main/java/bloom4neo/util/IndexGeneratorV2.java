@@ -15,8 +15,10 @@ public class IndexGeneratorV2 extends IndexGenerator {
 	 * Step 3: Use hash function to compute Bloom filter index for each MergeID
 	 * Step 4: Computation of Bloom filters Lin and Lout for vertices
 	 * 
-	 * Indexing info (long Ldis, Lfin;  int BFID; byte[] Lout, Lin) stored as properties on SCC representatives and non-SCC nodes.
-	 * 
+	 * Indexing info: 
+	 * 	long Ldis, Lfin;  int BFID; byte[] Lout, Lin stored as properties on SCC representatives and non-SCC nodes.
+	 * 	long[] cycleMembers stored as property on SCC representatives
+	 * 	long cycleRepID stored as property on SCC members
 	 */
 	public static void generateIndex(GraphDatabaseService dbs) {
 		

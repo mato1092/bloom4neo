@@ -23,8 +23,7 @@ public class IndexationTest
     public void indexationSimpleGraph() throws Throwable {
     	
     	// In a try-block, to make sure we close the driver and session after the test
-        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
-                .withEncryptionLevel( Config.EncryptionLevel.NONE ).toConfig() );
+        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build().toConfig() );
             Session session = driver.session() )
         {
 
@@ -77,8 +76,7 @@ public class IndexationTest
     public void indexationSimpleGraphWithCycle() throws Throwable {
 
         // In a try-block, to make sure we close the driver and session after the test
-        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build()
-                .withEncryptionLevel( Config.EncryptionLevel.NONE ).toConfig() );
+        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build().toConfig() );
             Session session = driver.session() )
         {
 
