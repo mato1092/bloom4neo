@@ -51,7 +51,23 @@ public class IndexationTest
 
 
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
+            // count should be 10 because there are 10 nodes outside of SCCs
             assertTrue(Integer.parseInt(count) == 10);
+            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").toString();
+            // count should be 10 because there are 10 nodes outside of SCCs
+            assertTrue(Integer.parseInt(count) == 10);
+            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").toString();
+            // count should be 10 because there are 10 nodes outside of SCCs
+            assertTrue(Integer.parseInt(count) == 10);
+            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").toString();
+            // count should be 10 because there are 10 nodes outside of SCCs
+            assertTrue(Integer.parseInt(count) == 10);
+            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").toString();
+            // count should be 0 because there is no SCC representative
+            assertTrue(Integer.parseInt(count) == 0);
+            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").toString();
+            // count should be 0 because there are no SCC members
+            assertTrue(Integer.parseInt(count) == 0);
 
         }
     	
@@ -90,8 +106,20 @@ public class IndexationTest
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
             // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
             assertTrue(Integer.parseInt(count) == 7);
+            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").toString();
+            // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
+            assertTrue(Integer.parseInt(count) == 7);
+            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").toString();
+            // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
+            assertTrue(Integer.parseInt(count) == 7);
+            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").toString();
+            // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
+            assertTrue(Integer.parseInt(count) == 7);
+            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").toString();
+            // count should be 1 because there is 1 SCC representative
+            assertTrue(Integer.parseInt(count) == 1);
             count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").toString();
-            // count should be 4 because 4 nodes (4, 5, 6, 9) are SCC members
+            // count should be 4 because 4 nodes with the nodeIDs (4, 5, 6, 9) are SCC members
             assertTrue(Integer.parseInt(count) == 4);
 
         }
