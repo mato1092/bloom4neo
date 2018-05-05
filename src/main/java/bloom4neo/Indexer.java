@@ -34,7 +34,8 @@ public class Indexer {
 	}
 	
 	/**
-	 * Checks whether a path between startNode and endNode exists
+	 * Checks whether a path between startNode and endNode exists <br>
+	 * TODO: proper implementation instead of this ugly workaround
 	 * @param startNode
 	 * @param endNode
 	 * @return a Stream<Dummy> with 2 elements if path exists, 1 if not 
