@@ -3,6 +3,7 @@ package bloom4neo;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.driver.v1.*;
+import org.neo4j.graphalgo.StronglyConnectedComponentsProc;
 import org.neo4j.harness.junit.Neo4jRule;
 
 
@@ -13,7 +14,8 @@ public class ReachabilityTest {
     // This rule starts a Neo4j instance for us
     @Rule
     public Neo4jRule neo4j = new Neo4jRule()
-            .withProcedure(Indexer.class);
+            .withProcedure(Indexer.class)
+    		.withProcedure(StronglyConnectedComponentsProc.class);
 
     //TODO Test cases:
     /*

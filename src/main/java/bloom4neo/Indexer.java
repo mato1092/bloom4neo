@@ -63,53 +63,125 @@ public class Indexer {
 									 @Name("endNode") Node endNode) {
 		BloomFilter filter = new BloomFilter();
 
+		// 1) same node? return true
 		if(startNode.getId() == endNode.getId()){
 			Stream<Reachability> result = Stream.of(new Reachability(true));
 			return result;
 		}
 		
-		//same cycle? return true
-		if (startNode.hasProperty("cycleRepID") && endNode.hasProperty("cycleRepID")) {
-			String id1 = startNode.getProperties("cycleRepID").toString();
-			String id2 = endNode.getProperties("cycleRepID").toString();
-			if (id1.equals(id2)) {
+		// 2) check for cycles
+		String cycleIDStart = null;
+		String cycleIDEnd = null;
+		if (startNode.hasProperty("cycleRepID")) {
+			cycleIDStart = startNode.getProperties("cycleRepID").toString();
+		}
+		if (endNode.hasProperty("cycleRepID")) {
+			cycleIDEnd = endNode.getProperties("cycleRepID").toString();
+		}
+		
+		// 3) if both are in a cycle
+		if (cycleIDStart != null && cycleIDEnd != null) {
+			// same Cycle -> return true
+			if (cycleIDStart.equals(cycleIDEnd)) {
 				return Stream.of(new Reachability(true));
+			} 
+			// different Cycles -> Check BF for CycleIDs
+			else {
+				if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
+					//TODO throw exception - not indexed
+				}
+				
+				String filterValue;
+				
+				// endNodeCycle in lout of startNodeCycle?
+				filterValue = startNode.getProperty("Lout").toString();
+				if(!filter.check(cycleIDEnd, filterValue)){
+					Stream<Reachability> result = Stream.of(new Reachability(false));
+					return result;
+				}	
+				// startNodeCylce in lin of endNodeCylce?
+				filterValue = endNode.getProperty("Lin").toString();
+				if(!filter.check(cycleIDStart, filterValue)){
+					Stream<Reachability> result = Stream.of(new Reachability(false));
+					return result;
+				}
+			}	
+		}
+		
+		// 4) if startNode is in a cycle
+		if (cycleIDStart != null && cycleIDEnd == null) {
+			if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
+				//TODO throw exception - not indexed
+			}
+			
+			String filterValue;
+			
+			// endNode in lout of startNodeCycle?
+			filterValue = startNode.getProperty("Lout").toString();
+			if(!filter.check(Long.toString(endNode.getId()), filterValue)){
+				Stream<Reachability> result = Stream.of(new Reachability(false));
+				return result;
+			}	
+			// startNodeCylce in lin of endNode?
+			filterValue = endNode.getProperty("Lin").toString();
+			if(!filter.check(cycleIDStart, filterValue)){
+				Stream<Reachability> result = Stream.of(new Reachability(false));
+				return result;
+			}	
+		}
+		
+		// 5) if EndNode is in a cycle
+		if (cycleIDStart == null && cycleIDEnd != null) {
+			if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
+				//TODO throw exception - not indexed
+			}
+			
+			String filterValue;
+			
+			// endNodeCycle in lout of startNode?
+			filterValue = startNode.getProperty("Lout").toString();
+			if(!filter.check(cycleIDEnd, filterValue)){
+				Stream<Reachability> result = Stream.of(new Reachability(false));
+				return result;
+			}	
+			// startNode in lin of endNodeCycle?
+			filterValue = endNode.getProperty("Lin").toString();
+			if(!filter.check(Long.toString(startNode.getId()), filterValue)){
+				Stream<Reachability> result = Stream.of(new Reachability(false));
+				return result;
+			}	
+		}
+		
+		// 6) no cycles
+		if (cycleIDStart == null && cycleIDEnd == null) {
+			if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
+				//TODO throw exception - not indexed
+			}
+			
+			String filterValue;
+			
+			//endNode in lout of startNode?
+			filterValue = startNode.getProperty("Lout").toString();
+			if(!filter.check(Long.toString(endNode.getId()), filterValue)){
+				Stream<Reachability> result = Stream.of(new Reachability(false));
+				return result;
+			}
+			
+			//startNode in lin of endNode?
+			filterValue = endNode.getProperty("Lin").toString();
+			if(!filter.check(Long.toString(startNode.getId()), filterValue)){
+				Stream<Reachability> result = Stream.of(new Reachability(false));
+				return result;
 			}
 		}
+			
 
-		//check direct connection
-		String filterValue = "";
-		String nodeId = "";
-
-		//checking lout of startNode
-		if(startNode.hasProperty("Lout")){
-			filterValue = startNode.getProperty("Lout").toString();
-		} else {
-			//TODO throw exception - not indexed
-		}
-		nodeId = Long.toString(endNode.getId());
-		//endNode in lout?
-		if(!filter.check(nodeId, filterValue)){
-			Stream<Reachability> result = Stream.of(new Reachability(false));
-			return result;
-		}
-
-		//checking lin of startNode
-		if(endNode.hasProperty("Lin")){
-			filterValue = endNode.getProperty("Lin").toString();
-			} else {
-			//TODO throw exception - not indexed
-		}
-		nodeId = Long.toString(startNode.getId());
-		//startNode in lin?
-		if(!filter.check(nodeId, filterValue)){
-			Stream<Reachability> result = Stream.of(new Reachability(false));
-			return result;
-		}
-
-		//so far true, lets check children (BSF)
+		// 7) so far true, lets check children (BSF)
+		// TODO: use Cycle Infos for faster searc
 		ArrayList<Long> visited = new ArrayList<>();
 		ArrayList<Node> adjacentsList = new ArrayList<>();
+		String filterValue = "";
+		String nodeId = "";
 
 		Iterable<Relationship> children = startNode.getRelationships(Direction.OUTGOING);
 		for(Relationship r : children){
@@ -164,7 +236,6 @@ public class Indexer {
 			}
 
 		}
-
 
 		System.out.println("ERROR");
 		return null;
