@@ -67,7 +67,15 @@ public class Indexer {
 			Stream<Reachability> result = Stream.of(new Reachability(true));
 			return result;
 		}
-		//TODO [CYCLE] same cylce? return true
+		
+		//same cycle? return true
+		if (startNode.hasProperty("cycleRepID") && endNode.hasProperty("cycleRepID")) {
+			String id1 = startNode.getProperties("cycleRepID").toString();
+			String id2 = endNode.getProperties("cycleRepID").toString();
+			if (id1.equals(id2)) {
+				return Stream.of(new Reachability(true));
+			}
+		}
 
 		//check direct connection
 		String filterValue = "";

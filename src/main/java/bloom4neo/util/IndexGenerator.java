@@ -5,101 +5,110 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 
 public abstract class IndexGenerator {
-
+	
+	private static BloomFilter filter = new BloomFilter();
 
 	public static void generateIndex(GraphDatabaseService dbs) {
-		BloomFilter filter = new BloomFilter();
-
+		
 		//todo just get all nodes without lin or lout property -> maybe it will make the indexation a little bit faster
 		for (Node n: dbs.getAllNodes()) {
-			ArrayList<Long> visited = new ArrayList<>();
-			ArrayList<Node> adjacentsList = new ArrayList<>();
+			
+			Set<Long> visited = new HashSet<>();
+			Queue<Node> adjacentsList = new LinkedList<>();
+			long nodeID;
 
-			//todo logging
-			System.out.println("Start indexation of node " + n.toString());
-
+			// Wenn der gerade Indexierte Node in einem Zyklus ist, wird die Zyklus-Node-Id statt seiner NodeId verwendet
+			if (n.hasProperty("cycleRepID")) {
+				nodeID = (long) n.getProperty("cycleRepID");
+				System.out.println("Start indexation of node " + n.toString() + " with cycleRepID " + nodeID);
+			} else {
+				nodeID = n.getId();
+				System.out.println("Start indexation of node " + n.toString());
+			}
+			
 			//mark the node is indexation was successfully
 			n.setProperty("index", true);
 			adjacentsList.add(n);
-
-
+			
 			//adding filter node self Lin
-			String nodeId = Long.toString(n.getId());
-			String filterValue = "";
-			if(n.hasProperty("Lin")){
-				filterValue = n.getProperty("Lin").toString();
-			}
-			n.setProperty("Lin", filter.add(nodeId, filterValue));
-
+			setLin(n, nodeID);
 			//adding filter node self Lout
-			filterValue = "";
-			if(n.hasProperty("Lout")){
-				filterValue = n.getProperty("Lout").toString();
-			}
-			n.setProperty("Lout", filter.add(nodeId, filterValue));
+			setLout(n, nodeID);
 
+			// BFS
 			while(adjacentsList.size() > 0){
-				Node curNode = adjacentsList.get(0);
-				adjacentsList.remove(0);
-
+				Node curNode = adjacentsList.poll();
 
 				Iterable<Relationship> children = curNode.getRelationships(Direction.OUTGOING);
 				for(Relationship r : children){
 					if(!visited.contains(r.getEndNodeId())){
 						adjacentsList.add(r.getEndNode());
 						visited.add(r.getEndNodeId());
+						
+						Node endNode= r.getEndNode();
 
 						//hint: curNode == parent node && r.getEndNode() == current children
 
-						//setting bloom filter value of Lin
-						if(r.getEndNode().hasProperty("cycleId")){
-							//todo if the node in a cycle --> "superNode"
+						if(endNode.hasProperty("cycleRepID")){ 
+							setLin(endNode, nodeID);
+							setLout(n, (long) endNode.getProperty("cycleRepID"));
 						} else {
-							//set values
-							nodeId = Long.toString(n.getId());
-							filterValue = "";
-							if(r.getEndNode().hasProperty("Lin")){
-								filterValue = r.getEndNode().getProperty("Lin").toString();
-							}
-
-							//adding to filter
-							r.getEndNode()
-									.setProperty("Lin", filter.add(nodeId, filterValue));
-						}
-
-						//setting bloom filter value of Lout
-						if(r.getEndNode().hasProperty("cycleId")){
-							//todo if the node in a cycle --> "superNode"
-						} else {
-							//set values
-							nodeId = Long.toString(r.getEndNodeId());
-							filterValue = "";
-							if(n.hasProperty("Lout")){
-								filterValue = n.getProperty("Lout").toString();
-							}
-
-							//adding to filter
-							n.setProperty("Lout", filter.add(nodeId, filterValue));
+							setLin(endNode, nodeID);
+							setLout(n, endNode.getId());
 						}
 					}
 				}
-
-
-
+			}
+		}
+		
+		// For Debugging
+		for (Node n: dbs.getAllNodes()) {
+			if (n.hasProperty("Lin")) {
+				System.out.println(n.getProperty("Lin"));
 			}
 		}
 
-
-
-
 	}
+	
+	
+	
+	/**
+	 * Adding nodeID to Lin of n
+	 * @param n
+	 * @param nodeId
+	 */
+	private static void setLin(Node n, long nodeId) {
+		String nodeIDString = Long.toString(nodeId);
+		String filterValue = "";
+		if(n.hasProperty("Lin")){
+			filterValue = n.getProperty("Lin").toString();
+		}
+		n.setProperty("Lin", filter.add(nodeIDString, filterValue));
+	}
+	
+	
+	/**
+	 * Adding nodeID to Lout of n
+	 * @param n
+	 * @param nodeId
+	 */
+	private static void setLout(Node n, long nodeId) {
+		String nodeIDString = Long.toString(nodeId);
+		String filterValue = "";
+		if(n.hasProperty("Lout")){
+			filterValue = n.getProperty("Lout").toString();
+		}
+		n.setProperty("Lout", filter.add(nodeIDString, filterValue));
+	}
+	
+
 
 
 

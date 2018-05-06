@@ -5,12 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
 public abstract class CycleNodesGenerator {
 	
@@ -20,17 +18,13 @@ public abstract class CycleNodesGenerator {
 	{
 		CYCLE_REP 
 	}
-	// sum # of all incoming transitions of the members of an cycleRep
-	public static final String PROPERTY_CYCLE_REP_NODE_INDEGREE = "inDegree"; 
-	// sum # of all outgoing transitions of the members of an cycleRep
-	public static final String PROPERTY_CYCLE_REP_NODE_OUTEGREE = "outDegree";
 	// list of NodeIDs of the members in a Cycle
 	public static final String PROPERTY_CYCLE_REP_NODE_MEMBERS = "cycleMembers";
 
 	
 	// for all non-CycleRepNodes: 
 	// NodeID of the CycleRepNode
-	public static final String PROPERTY_NODE_CYLCE_REP_NODE_ID = "cycleRepID";
+	public static final String PROPERTY_CYClE_REP_ID = "cycleRepID";
 	
 	
 	
@@ -74,43 +68,22 @@ public abstract class CycleNodesGenerator {
 				if (membersList.size() > 1) {
 					// create the CycleRep
 					Node newCycleRepNode = dbs.createNode(cycleRepNodeLabel.CYCLE_REP);
-					long inDegree = 0;
-					long outDegree = 0;
 					long[] membersArray = new long[membersList.size()];
 					
 					// calc Properties of Cycle Rep
 					for (int i = 0; i <membersList.size(); i++) {
 						Node member = dbs.getNodeById(membersList.get(i));
-						
-						// just count relationships of nodes that are not in the same cycle
-						for(Relationship r: member.getRelationships(Direction.INCOMING)) {
-							if (!membersList.contains(r.getStartNodeId())){
-								inDegree += 1;
-							}
-						}
-						for(Relationship r: member.getRelationships(Direction.OUTGOING)) {
-							if (!membersList.contains(r.getEndNodeId())){
-								outDegree += 1;
-							}
-						}
-						
 						membersArray[i] = membersList.get(i);
-						
 						// add Property to each member of the cycleRep
-						member.setProperty(PROPERTY_NODE_CYLCE_REP_NODE_ID, newCycleRepNode.getId());
+						member.setProperty(PROPERTY_CYClE_REP_ID, newCycleRepNode.getId());
 					}
 					
 					// add Properties to CycleRep
-					newCycleRepNode.setProperty(PROPERTY_CYCLE_REP_NODE_INDEGREE, inDegree);
-					newCycleRepNode.setProperty(PROPERTY_CYCLE_REP_NODE_OUTEGREE, outDegree);
 					newCycleRepNode.setProperty(PROPERTY_CYCLE_REP_NODE_MEMBERS, membersArray);
 				}	
 			}
 		}
-		
-		for (Node n: dbs.getAllNodes()) {
-			System.out.println(n.getAllProperties().toString());
-		}
 	}
+	
 
 }
