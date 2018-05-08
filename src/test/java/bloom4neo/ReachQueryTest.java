@@ -47,13 +47,13 @@ public class ReachQueryTest
             session.run("CALL createIndex");
             
             // 0~>3
-            assertTrue(session.run("CALL checkReachability(0, 3)").list().size() == 2);
+            assertTrue(session.run("CALL checkReachability(0, 3) YIELD result RETURN result").next().get("result").asBoolean());
             // 8~>3
-            assertTrue(session.run("CALL checkReachability(8, 3)").list().size() == 2);
+            assertTrue(session.run("CALL checkReachability(8, 3) YIELD result RETURN result").next().get("result").asBoolean());
             // 5!~>3
-            assertFalse(session.run("CALL checkReachability(5, 3)").list().size() == 2);
+            assertFalse(session.run("CALL checkReachability(5, 3) YIELD result RETURN result").next().get("result").asBoolean());
             // 8!~>9
-            assertFalse(session.run("CALL checkReachability(8, 9)").list().size() == 2);
+            assertFalse(session.run("CALL checkReachability(8, 9) YIELD result RETURN result").next().get("result").asBoolean());
             
         }
     	
@@ -88,13 +88,13 @@ public class ReachQueryTest
             session.run("CALL createIndex");
             
             // 0~>3
-            assertTrue(session.run("CALL checkReachability(0, 3)").list().size() == 2);
+            assertTrue(session.run("CALL checkReachability(0, 3) YIELD result RETURN result").next().get("result").asBoolean());
             // 8~>3
-            assertTrue(session.run("CALL checkReachability(8, 3)").list().size() == 2);
+            assertTrue(session.run("CALL checkReachability(8, 3) YIELD result RETURN result").next().get("result").asBoolean());
             // 5!~>3
-            assertFalse(session.run("CALL checkReachability(5, 3)").list().size() == 2);
+            assertFalse(session.run("CALL checkReachability(5, 3) YIELD result RETURN result").next().get("result").asBoolean());
             // 8~>9
-            assertTrue(session.run("CALL checkReachability(8, 9)").list().size() == 2);
+            assertTrue(session.run("CALL checkReachability(8, 9) YIELD result RETURN result").next().get("result").asBoolean());
 
 
         }

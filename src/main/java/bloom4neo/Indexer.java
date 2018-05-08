@@ -9,7 +9,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import bloom4neo.util.CycleNodesGenerator;
-import bloom4neo.util.Dummy;
+import bloom4neo.util.ReachQueryResult;
 import bloom4neo.util.IndexGeneratorV2;
 import bloom4neo.util.Reachability;
 
@@ -41,15 +41,10 @@ public class Indexer {
 	 * @return a Stream<Dummy> with 2 elements if path exists, 1 if not 
 	 */
 	@Procedure(name = "checkReachability", mode = Mode.READ)
-	public Stream<Dummy> procedure_checkReachability(@Name("startNode") long startNodeID, @Name("endNode") long endNodeID) {
+	public Stream<ReachQueryResult> procedure_checkReachability(@Name("startNode") long startNodeID, @Name("endNode") long endNodeID) {
 		Reachability reach = new Reachability();
-		Dummy dummy = new Dummy();
-		if(reach.query(dbs.getNodeById(startNodeID), dbs.getNodeById(endNodeID))) {
-			return Stream.of(dummy, dummy);
-		}
-		else {
-			return Stream.of(dummy);
-		}
+		ReachQueryResult res = new ReachQueryResult(reach.query(dbs.getNodeById(startNodeID), dbs.getNodeById(endNodeID)));
+		return Stream.of(res);
 	}
 	
 
