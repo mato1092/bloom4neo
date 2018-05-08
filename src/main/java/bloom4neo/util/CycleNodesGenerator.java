@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -127,7 +126,7 @@ public abstract class CycleNodesGenerator {
 		Set<Node> neighbours = new HashSet<Node>();
 		Node v;
 		GraphDatabaseService dbs = n.getGraphDatabase();
-		List<Long> memberList = Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers")));
+		Set<Long> memberList = new HashSet<Long>(Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers"))));
 		for(Long id : memberList) {
 			v = dbs.getNodeById(id);
 			for(Relationship r : v.getRelationships(d)) {
