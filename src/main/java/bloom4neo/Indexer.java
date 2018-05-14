@@ -110,11 +110,14 @@ public class Indexer {
 				if(achievedGoal(r.getEndNode(), endNode)){
 					return Stream.of(new Reachability(true));
 				}
-				//todo outgoing cycles relationships
-				
+
 				long id;
 				if(r.getEndNode().hasProperty("cycleRepID")){
 					id = dbs.getNodeById(Long.valueOf(r.getEndNode().getProperty("cycleRepID").toString())).getId();
+					//todo outgoing cycles relationships
+					for (Node el : CycleNodesGenerator.findNeighbours(r.getEndNode())) {
+						adjacentsList.add(el);
+					}
 				} else {
 					id = r.getEndNodeId();
 				}
@@ -140,7 +143,7 @@ public class Indexer {
 		}
 
 		if(end.hasProperty("cycleRepID")){
-			end = dbs.getNodeById(Long.valueOf(start.getProperty("cycleRepID").toString()));
+			end = dbs.getNodeById(Long.valueOf(end.getProperty("cycleRepID").toString()));
 		}
 
 		Long startId = start.getId();
