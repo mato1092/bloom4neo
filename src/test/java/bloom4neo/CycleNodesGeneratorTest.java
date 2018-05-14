@@ -18,7 +18,7 @@ public class CycleNodesGeneratorTest {
     public Neo4jRule neo4j = new Neo4jRule()
             .withProcedure(Indexer.class)
     		.withProcedure(StronglyConnectedComponentsProc.class);
-    
+
     @Test
     public void generateCylces() throws Throwable {
     	
