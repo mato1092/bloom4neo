@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -126,17 +125,21 @@ public abstract class CycleNodesGenerator {
 		Set<Node> neighbours = new HashSet<Node>();
 		Node v;
 		GraphDatabaseService dbs = n.getGraphDatabase();
-		Set<Long> memberList = new HashSet<Long>(Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers"))));
-		for(Long id : memberList) {
+		long[] members = (long[]) n.getProperty("cycleMembers");
+		Set<Long> memberSet = new HashSet<Long>();
+		for (long m : members) {
+			memberSet.add(m);
+		}
+		for(Long id : memberSet) {
 			v = dbs.getNodeById(id);
 			for(Relationship r : v.getRelationships(d)) {
 				if(d == Direction.OUTGOING) {
-					if(!memberList.contains(r.getEndNodeId())) {
+					if(!memberSet.contains(r.getEndNodeId())) {
 						neighbours.add(r.getEndNode());						
 					}
 				}
 				else {
-					if(!memberList.contains(r.getStartNodeId())) {
+					if(!memberSet.contains(r.getStartNodeId())) {
 						neighbours.add(r.getStartNode());						
 					}
 				}
