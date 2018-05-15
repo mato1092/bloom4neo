@@ -245,7 +245,7 @@ public class ReachabilityTest {
             session.run("CALL createIndex()");
 
             Boolean out = session.run("match(n:Node{name:10})\n" +
-                    "match(m:Node{name:7})\n" +
+                    "match(m:Node{name:3})\n" +
                     "CALL checkReachability(n,m) YIELD out\n" +
                     "RETURN out").next().get("out").asBoolean();
 

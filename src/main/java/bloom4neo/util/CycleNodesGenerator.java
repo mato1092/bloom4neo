@@ -84,7 +84,6 @@ public abstract class CycleNodesGenerator {
 	/**
 	 * Finds all neighbours of the cycle represented by n in the direction d
 	 * @param n cycle representative
-	 * @param d direction
 	 * @return set of neighbours
 	 */
 	public static Set<Node> findNeighbours(Node n){
@@ -93,7 +92,7 @@ public abstract class CycleNodesGenerator {
 		Node v;
 		Set<Long> memberList = new HashSet<>();
 		GraphDatabaseService dbs = n.getGraphDatabase();
-		if(n.hasProperty("cylceMembers")){
+		if(n.hasProperty("cycleMembers")){
 			memberList = new HashSet<Long>(Arrays.asList(ArrayUtils.toObject((long[]) n.getProperty("cycleMembers"))));
 		}
 

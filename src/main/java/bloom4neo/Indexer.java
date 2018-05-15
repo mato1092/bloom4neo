@@ -115,7 +115,9 @@ public class Indexer {
 				if(r.getEndNode().hasProperty("cycleRepID")){
 					id = dbs.getNodeById(Long.valueOf(r.getEndNode().getProperty("cycleRepID").toString())).getId();
 					//todo outgoing cycles relationships
-					for (Node el : CycleNodesGenerator.findNeighbours(r.getEndNode())) {
+					Node repNode = dbs.getNodeById(Long.valueOf(r.getEndNode().getProperty("cycleRepID").toString()));
+					Set<Node> tmp =  CycleNodesGenerator.findNeighbours(repNode);
+					for (Node el : CycleNodesGenerator.findNeighbours(repNode)){
 						adjacentsList.add(el);
 					}
 				} else {
