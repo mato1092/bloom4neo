@@ -1,28 +1,32 @@
 package bloom4neo.util;
 
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
 import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterable;
 
 public class DepthFirstSearch {
 	
 	private long current;
+	private long poCounter;
 	private GraphDatabaseService dbs;
-	private List<Long> postOrder;
+//	private List<Long> postOrder;
+	private long[] arrayPostOrder;
+	private ResourceIterable<Node> allNodes;
 	
 	/**
 	 * Executes Depth-first search through DB to compute Ldis & Lfin for all nodes and the post order <br>
 	 * Ldis and Lfin stored as properties on nodes, for SCC members they are only stored on cycle representatives <br>
 	 * @return post order
 	 */
-	public List<Long> executeDFS(){
+	public long[] executeDFS(){
 		
-		for(Node n : dbs.getAllNodes()) {
+		for(Node n : allNodes) {
 			
 			// if n has not been discovered by DFS
 			if( !n.hasProperty("Ldis") ) {
@@ -40,8 +44,11 @@ public class DepthFirstSearch {
 			
 			
 		}
+		// arrayPostOrder can have empty space at the end which should be deleted
+		long[] shortenedPostOrder = new long[getPoCounter()];
+		System.arraycopy(getArrayPostOrder(), 0, shortenedPostOrder, 0, getPoCounter());
+		return shortenedPostOrder;
 		
-		return getPostOrder();
 	}  
 	
 	private void DFSVisit(Node n) {
@@ -60,9 +67,8 @@ public class DepthFirstSearch {
 					DFSVisit(outNode);
 				}
 			}
-			postOrder.add(n.getId());
-			long cur = incrementCurrent();
-			n.setProperty("Lfin", cur);
+			addToPostOrder(n.getId());
+			n.setProperty("Lfin", incrementCurrent());
 			// if indexing info should be stored on SCC members, remove comment from next loop
 //			for(Long id : memberList) {
 //				dbs.getNodeById(id).setProperty("Lfin", cur);
@@ -86,34 +92,57 @@ public class DepthFirstSearch {
 				}
 			}
 			addToPostOrder(n.getId());
-			incrementCurrent();
-			n.setProperty("Lfin", getCurrent());
+			n.setProperty("Lfin", incrementCurrent());
 		}
 	}
 	
 	public DepthFirstSearch(GraphDatabaseService gdbs) {
 		
 		this.current = 0;
+		this.poCounter = 0;
 		this.dbs = gdbs;
-		this.postOrder = new ArrayList<Long>();
+		this.allNodes = gdbs.getAllNodes();
+//		this.postOrder = new ArrayList<Long>();
+		// Size of arrayPostOrder = no. of nodes in DB
+		// TODO: use no. of indexable nodes (non-SCC + SCC rep.) instead
+		this.arrayPostOrder = new long[(int) allNodes.stream().count()];
 		
 	}
 	
 	private void addToPostOrder(long nodeID) {
 		
-		this.postOrder.add(nodeID);
+//		this.postOrder.add(nodeID);
+		this.arrayPostOrder[getAndIncrementPoCounter()] = nodeID;
 		
 	}
 	
-	private List<Long> getPostOrder() {
+//	private List<Long> getPostOrder() {
+//		
+//		return this.postOrder;
+//		
+//	}
+	
+	public long[] getArrayPostOrder() {
 		
-		return this.postOrder;
+		return this.arrayPostOrder;
 		
 	}
 	
 	private long getCurrent() {
 		
 		return this.current;
+		
+	}
+	
+	private int getAndIncrementPoCounter() {
+
+		return (int) this.poCounter++;
+		
+	}
+	
+	private int getPoCounter() {
+		
+		return (int) this.poCounter;
 		
 	}
 	

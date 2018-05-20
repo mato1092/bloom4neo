@@ -14,6 +14,31 @@ public class VertexMerger {
 	private int d = 0;
 	private int groupSize = 0;
 	private List<Long> postOrder;
+	private long[] arrayPostOrder;
+	private long[][] result;
+	
+	/**
+	 * VertexMerger(arrayPostOrder)
+	 * @param arrayPO post order array
+	 */
+	public VertexMerger(long[] arrayPO) {
+		
+		this.arrayPostOrder = arrayPO;
+		if(arrayPO.length <= 50) {
+			this.groupSize = 3;
+			this.d = (arrayPO.length + this.groupSize -1) / this.groupSize;
+		}
+		else if(arrayPO.length < 3200) {
+			this.groupSize = 10;
+			this.d = (arrayPO.length + this.groupSize -1) / this.groupSize;
+		}
+		else {
+			this.d = 1600;
+			this.groupSize = (arrayPO.length + this.d -1) / this.d;
+		}
+		this.result = new long[d][groupSize];
+		
+	}
 	
 	/**
 	 * VertexMerger(postOrder): d and groupSize calculated by constructor
@@ -34,6 +59,7 @@ public class VertexMerger {
 			this.d = 1600;
 			this.groupSize = (pO.size() + this.d -1) / this.d;
 		}
+		this.result = new long[d][groupSize];
 		
 	}
 	
@@ -54,6 +80,7 @@ public class VertexMerger {
 			this.d = d;
 			this.groupSize = (pO.size() + this.d -1) / this.d;
 		}
+		this.result = new long[d][groupSize];
 		
 	}
 	
@@ -74,8 +101,25 @@ public class VertexMerger {
 			this.groupSize = groupSize;
 			this.d = (pO.size() + this.groupSize -1) / this.groupSize;
 		}
+		this.result = new long[d][groupSize];
 		
 	}
+	
+	/**
+	 * Alternative implementation of merge with 2D array as return type <br>
+	 * Made in order to use primitive datatypes, possible because mergeIDs are irrelevant in further steps
+	 * @return
+	 */
+	public long[][] mergeToArray(){
+		for(int i = 0; i < this.arrayPostOrder.length; i++) {
+			this.result[i / this.groupSize][i % this.groupSize] = this.arrayPostOrder[i];
+		}
+		long[] lastElement = new long[this.arrayPostOrder.length % this.groupSize];
+		System.arraycopy(this.result[this.result.length - 1], 0, lastElement, 0, lastElement.length);
+		this.result[this.result.length - 1] = lastElement;
+		return this.result;
+	}
+	
 	
 	/**
 	 * Vertex merging based on parameters defined by VertexMerger constructor

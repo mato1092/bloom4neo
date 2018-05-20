@@ -2,6 +2,7 @@ package bloom4neo.util;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,6 +109,52 @@ public class BloomFilter {
 			bfLists.get((int) (i % s)).addAll(mergeMap.get(mergeIDs.get(i)));
 		}
 		return bfLists;
+	}
+	
+	/**
+	 * Variant of doBFHash using 2D arrays
+	 * @param mergeArray 2D array of VertexMerger results
+	 * @return bfArray
+	 */
+	public static long[][] doArrayBFHash(long[][] mergeArray) {
+		int d = mergeArray.length;
+		int s = 160;
+		int mergeSize = mergeArray[0].length;
+		if(d < 6) {
+			s = d;
+		}
+		else if(d <= 100) {
+			s = (d + 1) / 2;
+		}
+		else if(d < 1600) {
+			s = (d + 4) / 5;
+		}
+		long[][] bfArray = new long[s][(mergeSize * d + s - 1) / s];
+		for(long[] row : bfArray) {
+			Arrays.fill(row, -1);
+		}
+		/* simple BF hashing to ensure fairly equal distribution of BF indices over mergeIDs
+		 * another solution may be a more randomised mapping of BFIDs to mergeIDs at the risk of more uneven distribution?
+		 */
+		for(int i = 0; i < mergeArray.length; i++) {
+			for(int j = 0; j < mergeArray[i].length; j++) {
+				bfArray[i % s][mergeSize * (i / s) + j] = mergeArray[i][j];
+			}
+		}
+//		// resulting bfArray can have "empty spots" that contain -1 where no value was copied in
+//		// if the next step (storing BFIDs to nodes in IndexGeneratorV2) would not consider this, they would have to be removed:
+//		long[] shortened;
+//		for(int i = 0; i < s; i++) {
+//			for(int j = 0; j < bfArray[0].length; j++) {
+//				if(bfArray[i][j] == -1) {
+//					shortened = new long[j];
+//					System.arraycopy(bfArray[i], 0, shortened, 0, j);
+//					bfArray[i] = shortened;
+//					break;
+//				}
+//			}
+//		}
+		return bfArray;
 	}
 	
 	/**

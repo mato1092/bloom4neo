@@ -3,6 +3,7 @@ package bloom4neo;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
@@ -34,16 +35,27 @@ public class Indexer {
 	}
 	
 	/**
-	 * Checks whether a path between startNode and endNode exists <br>
-	 * TODO: proper implementation instead of this ugly workaround
+	 * Checks whether a path between startNode and endNode exists
 	 * @param startNode
 	 * @param endNode
-	 * @return a Stream<Dummy> with 2 elements if path exists, 1 if not 
+	 * @return a Stream<ReachQueryResult> with the result as boolean
 	 */
 	@Procedure(name = "checkReachability", mode = Mode.READ)
-	public Stream<ReachQueryResult> procedure_checkReachability(@Name("startNode") long startNodeID, @Name("endNode") long endNodeID) {
+	public Stream<ReachQueryResult> procedure_checkReachability(@Name("startNode") Object startNode, @Name("endNode") Object endNode) {
 		Reachability reach = new Reachability();
-		ReachQueryResult res = new ReachQueryResult(reach.query(dbs.getNodeById(startNodeID), dbs.getNodeById(endNodeID)));
+		ReachQueryResult res = new ReachQueryResult(false);
+		// if arguments are node IDs
+		if(startNode.getClass().equals(Long.class) && endNode.getClass().equals(Long.class)) {
+			res = new ReachQueryResult(reach.query(dbs.getNodeById((long) startNode), dbs.getNodeById((long) endNode)));
+		}
+		// if arguments are nodes
+		else if(startNode.getClass().equals(Node.class) && endNode.getClass().equals(Node.class)) {
+			res = new ReachQueryResult(reach.query((Node) startNode, (Node) endNode));
+		}
+//		// if arguments not suitable
+//		else {
+//			res = null;
+//		}
 		return Stream.of(res);
 	}
 	
