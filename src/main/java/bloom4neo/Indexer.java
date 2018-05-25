@@ -45,11 +45,11 @@ public class Indexer {
 		Reachability reach = new Reachability();
 		ReachQueryResult res = new ReachQueryResult(false);
 		// if arguments are node IDs
-		if(startNode.getClass().equals(Long.class) && endNode.getClass().equals(Long.class)) {
+		if(startNode instanceof Long && endNode instanceof Long) {
 			res = new ReachQueryResult(reach.query(dbs.getNodeById((long) startNode), dbs.getNodeById((long) endNode)));
 		}
 		// if arguments are nodes
-		else if(startNode.getClass().equals(Node.class) && endNode.getClass().equals(Node.class)) {
+		else if(startNode instanceof Node && endNode instanceof Node) {
 			res = new ReachQueryResult(reach.query((Node) startNode, (Node) endNode));
 		}
 //		// if arguments not suitable
