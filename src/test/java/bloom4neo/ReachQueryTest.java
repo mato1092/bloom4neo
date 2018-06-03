@@ -15,6 +15,7 @@ public class ReachQueryTest
     @Rule
     public Neo4jRule neo4j = new Neo4jRule()
             .withProcedure(Indexer.class)
+            .withFunction(Indexer.class)
             .withProcedure(StronglyConnectedComponentsProc.class);
 
     
@@ -47,13 +48,13 @@ public class ReachQueryTest
             session.run("CALL createIndex");
             
             // 0~>3
-            assertTrue(session.run("CALL checkReachability(0, 3) YIELD result RETURN result").next().get("result").asBoolean());
+            assertTrue(session.run("return bloom4neo.checkReachability(0, 3) as result").next().get("result").asBoolean());
             // 8~>3
-            assertTrue(session.run("CALL checkReachability(8, 3) YIELD result RETURN result").next().get("result").asBoolean());
+            assertTrue(session.run("return bloom4neo.checkReachability(8, 3) as result").next().get("result").asBoolean());
             // 5!~>3
-            assertFalse(session.run("CALL checkReachability(5, 3) YIELD result RETURN result").next().get("result").asBoolean());
+            assertFalse(session.run("return bloom4neo.checkReachability(5, 3) as result").next().get("result").asBoolean());
             // 8!~>9
-            assertFalse(session.run("CALL checkReachability(8, 9) YIELD result RETURN result").next().get("result").asBoolean());
+            assertFalse(session.run("return bloom4neo.checkReachability(8, 9) as result").next().get("result").asBoolean());
             
         }
     	
@@ -88,13 +89,13 @@ public class ReachQueryTest
             session.run("CALL createIndex");
             
             // 0~>3
-            assertTrue(session.run("CALL checkReachability(0, 3) YIELD result RETURN result").next().get("result").asBoolean());
+            assertTrue(session.run("return bloom4neo.checkReachability(0, 3) as result").next().get("result").asBoolean());
             // 8~>3
-            assertTrue(session.run("CALL checkReachability(8, 3) YIELD result RETURN result").next().get("result").asBoolean());
+            assertTrue(session.run("return bloom4neo.checkReachability(8, 3) as result").next().get("result").asBoolean());
             // 5!~>3
-            assertFalse(session.run("CALL checkReachability(5, 3) YIELD result RETURN result").next().get("result").asBoolean());
+            assertFalse(session.run("return bloom4neo.checkReachability(5, 3) as result").next().get("result").asBoolean());
             // 8~>9
-            assertTrue(session.run("CALL checkReachability(8, 9) YIELD result RETURN result").next().get("result").asBoolean());
+            assertTrue(session.run("return bloom4neo.checkReachability(8, 9) as result").next().get("result").asBoolean());
 
 
         }
@@ -164,9 +165,9 @@ public class ReachQueryTest
             session.run("CALL createIndex");
             
             // 3~>10
-            assertTrue(session.run("CALL checkReachability(3, 10) YIELD result RETURN result").next().get("result").asBoolean());
+            assertTrue(session.run("return bloom4neo.checkReachability(3, 10) as result").next().get("result").asBoolean());
             // 0!~>19
-            assertFalse(session.run("CALL checkReachability(0, 19) YIELD result RETURN result").next().get("result").asBoolean());
+            assertFalse(session.run("return bloom4neo.checkReachability(0, 19) as result").next().get("result").asBoolean());
             
         }
     	

@@ -9,6 +9,7 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
 import bloom4neo.util.CycleNodesGenerator;
 import bloom4neo.util.ReachQueryResult;
@@ -67,23 +68,23 @@ public class Indexer {
 	 * @param endNode
 	 * @return a Stream<ReachQueryResult> with the result as boolean
 	 */
-	@Procedure(name = "checkReachability", mode = Mode.READ)
-	public Stream<ReachQueryResult> procedure_checkReachability(@Name("startNode") Object startNode, @Name("endNode") Object endNode) {
+	@UserFunction(value = "bloom4neo.checkReachability")
+	public boolean procedure_checkReachability(@Name("startNode") Object startNode, @Name("endNode") Object endNode) {
 		Reachability reach = new Reachability();
-		ReachQueryResult res = new ReachQueryResult(false);
+		boolean res = false;
 		// if arguments are node IDs
 		if(startNode instanceof Long && endNode instanceof Long) {
-			res = new ReachQueryResult(reach.query(dbs.getNodeById((long) startNode), dbs.getNodeById((long) endNode)));
+			res = reach.query(dbs.getNodeById((long) startNode), dbs.getNodeById((long) endNode));
 		}
 		// if arguments are nodes
 		else if(startNode instanceof Node && endNode instanceof Node) {
-			res = new ReachQueryResult(reach.query((Node) startNode, (Node) endNode));
+			res = reach.query((Node) startNode, (Node) endNode);
 		}
 //		// if arguments not suitable
 //		else {
 //			res = null;
 //		}
-		return Stream.of(res);
+		return res;
 	}
 	
 //	/**
