@@ -1,5 +1,6 @@
 package bloom4neo;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -12,6 +13,7 @@ import org.neo4j.procedure.Procedure;
 import bloom4neo.util.CycleNodesGenerator;
 import bloom4neo.util.ReachQueryResult;
 import bloom4neo.util.IndexGeneratorV2;
+import bloom4neo.util.MassReachResult;
 import bloom4neo.util.Reachability;
 
 public class Indexer {
@@ -43,7 +45,7 @@ public class Indexer {
 		for(Node n : dbs.getAllNodes()) {
 			
 			if(n.hasProperty("cycleMembers")) {
-				dbs.getNodeById(n.getId()).delete();
+				n.delete();
 			}
 			else if(n.hasProperty("cycleRepID")) {
 				n.removeProperty("cycleRepID");
@@ -84,5 +86,18 @@ public class Indexer {
 		return Stream.of(res);
 	}
 	
+//	/**
+//	 * Checks which pairs of Nodes have paths between two Node lists 
+//	 * @param startNodes
+//	 * @param endNodes
+//	 * @return a Stream<MassReachResult> with the results as pairs of nodes
+//	 */
+//	@Procedure(name = "massReachability", mode = Mode.READ)
+//	public Stream<MassReachResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
+//		Reachability reach = new Reachability();
+//		MassReachResult res = new MassReachResult();
+//
+//		return Stream.of(res);
+//	}
 
 }

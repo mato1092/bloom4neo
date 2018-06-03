@@ -47,24 +47,24 @@ public class IndexationTest
             session.run("CALL createIndex");
 
 
-            String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
+            int count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").asInt();
             // count should be 10 because there are 10 nodes outside of SCCs
-            assertTrue(Integer.parseInt(count) == 10);
-            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 10);
+            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").asInt();
             // count should be 10 because there are 10 nodes outside of SCCs
-            assertTrue(Integer.parseInt(count) == 10);
-            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 10);
+            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").asInt();
             // count should be 10 because there are 10 nodes outside of SCCs
-            assertTrue(Integer.parseInt(count) == 10);
-            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 10);
+            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").asInt();
             // count should be 10 because there are 10 nodes outside of SCCs
-            assertTrue(Integer.parseInt(count) == 10);
-            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 10);
+            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").asInt();
             // count should be 0 because there is no SCC representative
-            assertTrue(Integer.parseInt(count) == 0);
-            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 0);
+            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").asInt();
             // count should be 0 because there are no SCC members
-            assertTrue(Integer.parseInt(count) == 0);
+            assertTrue(count == 0);
 
         }
     	
@@ -99,30 +99,30 @@ public class IndexationTest
             
             session.run("CALL createIndex");
 
-            String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
+            int count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").asInt();
             // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
-            assertTrue(Integer.parseInt(count) == 7);
-            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 7);
+            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").asInt();
             // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
-            assertTrue(Integer.parseInt(count) == 7);
-            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 7);
+            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").asInt();
             // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
-            assertTrue(Integer.parseInt(count) == 7);
-            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 7);
+            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").asInt();
             // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
-            assertTrue(Integer.parseInt(count) == 7);
-            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 7);
+            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").asInt();
             // count should be 1 because there is 1 SCC representative
-            assertTrue(Integer.parseInt(count) == 1);
-            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").toString();
+            assertTrue(count == 1);
+            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").asInt();
             // count should be 4 because 4 nodes with the nodeIDs (4, 5, 6, 9) are SCC members
-            assertTrue(Integer.parseInt(count) == 4);
+            assertTrue(count == 4);
 
         }
 
     }
     
-/*    @Test
+    @Test
     public void indexationDeleteIndex() throws Throwable {
 
         // In a try-block, to make sure we close the driver and session after the test
@@ -153,15 +153,26 @@ public class IndexationTest
 
             session.run("CALL deleteIndex");
             
-            boolean indexDeleted = true;
-            // TODO: test whether index successfully deleted
-            StatementResult r = session.run("MATCH (n) RETURN n");
-            
-            for(Record rec : r.list()) {
-            	
-            }
+            int count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").asInt();
+            // count should be 0
+            assertTrue(count == 0);
+            count = session.run("match(n) where exists (n.Lout) return count(n)").next().get("count(n)").asInt();
+            // count should be 0
+            assertTrue(count == 0);
+            count = session.run("match(n) where exists (n.Ldis) return count(n)").next().get("count(n)").asInt();
+            // count should be 0
+            assertTrue(count == 0);
+            count = session.run("match(n) where exists (n.Lfin) return count(n)").next().get("count(n)").asInt();
+            // count should be 0
+            assertTrue(count == 0);
+            count = session.run("match(n) where exists (n.cycleMembers) return count(n)").next().get("count(n)").asInt();
+            // count should be 0
+            assertTrue(count == 0);
+            count = session.run("match(n) where exists (n.cycleRepID) return count(n)").next().get("count(n)").asInt();
+            // count should be 0
+            assertTrue(count == 0);
 
         }
 
-    }*/
+    }
 }
