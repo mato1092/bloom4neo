@@ -35,6 +35,31 @@ public class Indexer {
 	}
 	
 	/**
+	 * Deletes index and generated SCC representatives 
+	 */
+	@Procedure(name = "deleteIndex", mode = Mode.WRITE)
+	public void procedure_deleteIndex() {
+
+		for(Node n : dbs.getAllNodes()) {
+			
+			if(n.hasProperty("cycleMembers")) {
+				dbs.getNodeById(n.getId()).delete();
+			}
+			else if(n.hasProperty("cycleRepID")) {
+				n.removeProperty("cycleRepID");
+			}
+			else {
+				n.removeProperty("Ldis");
+				n.removeProperty("Lfin");
+				n.removeProperty("Lin");
+				n.removeProperty("Lout");
+				n.removeProperty("BFID");
+			}
+		}
+		
+	}
+	
+	/**
 	 * Checks whether a path between startNode and endNode exists
 	 * @param startNode
 	 * @param endNode

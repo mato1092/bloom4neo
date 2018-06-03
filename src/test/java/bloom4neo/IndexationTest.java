@@ -121,4 +121,47 @@ public class IndexationTest
         }
 
     }
+    
+/*    @Test
+    public void indexationDeleteIndex() throws Throwable {
+
+        // In a try-block, to make sure we close the driver and session after the test
+        try(Driver driver = GraphDatabase.driver( neo4j.boltURI() , Config.build().toConfig() );
+            Session session = driver.session() )
+        {
+
+            String create = "create (a:Node{name:1})\n" +
+                    "create (b:Node{name:2})\n" +
+                    "create (c:Node{name:3})\n" +
+                    "create (d:Node{name:4})\n" +
+                    "create (e:Node{name:5})\n" +
+                    "create (f:Node{name:6})\n" +
+                    "create (g:Node{name:7})\n" +
+                    "create (h:Node{name:8})\n" +
+                    "create (i:Node{name:9})\n" +
+                    "create (j:Node{name:10})\n" +
+                    "create (a)-[:HAS]->(b)-[:HAS]->(c)-[:HAS]->(d)\n" +
+                    "create (e)-[:HAS]->(f)-[:HAS]->(g)-[:HAS]->(h)\n" +
+                    "create (i)-[:HAS]->(c)\n" +
+                    "create (j)-[:HAS]->(e)\n" +
+                    "create (i)-[:HAS]->(f)\n" +
+                    "create (g)-[:HAS]->(j)";
+
+            session.run(create);
+            
+            session.run("CALL createIndex");
+
+            session.run("CALL deleteIndex");
+            
+            boolean indexDeleted = true;
+            // TODO: test whether index successfully deleted
+            StatementResult r = session.run("MATCH (n) RETURN n");
+            
+            for(Record rec : r.list()) {
+            	
+            }
+
+        }
+
+    }*/
 }
