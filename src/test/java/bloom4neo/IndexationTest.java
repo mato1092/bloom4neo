@@ -7,7 +7,6 @@ import org.neo4j.graphalgo.StronglyConnectedComponentsProc;
 import org.neo4j.harness.junit.Neo4jRule;
 
 
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class IndexationTest
@@ -122,7 +121,7 @@ public class IndexationTest
 
 
             String count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").toString();
-            assertTrue(Integer.parseInt(count) == 10);
+            assertTrue(Integer.parseInt(count) == 11);
             //count = session.run("match(n) where exists (n.cyclceId) return count(n)").next().get("count(n)").toString();
             //assertTrue(Integer.parseInt(count) == 4);
             //assertTrue(true);

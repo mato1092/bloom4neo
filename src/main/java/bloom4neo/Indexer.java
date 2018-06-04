@@ -10,7 +10,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.impl.transaction.log.ReadAheadChannel;
 import org.neo4j.procedure.*;
 
-import java.util.ArrayList;
+import javax.management.relation.Relation;
+import java.util.*;
 import java.util.stream.Stream;
 
 
@@ -61,7 +62,6 @@ public class Indexer {
 	@Description("Checking Reachability of to nodes")
 	public Stream<Reachability> checkReachability(@Name("startNode") Node startNode,
 									 @Name("endNode") Node endNode) {
-		BloomFilter filter = new BloomFilter();
 
 		// 1) same node? return true
 		if(startNode.getId() == endNode.getId()){
@@ -69,178 +69,118 @@ public class Indexer {
 			return result;
 		}
 		
-		// 2) check for cycles
-		String cycleIDStart = null;
-		String cycleIDEnd = null;
+		// 2) same cycle ? return true
+		String cycleIDStart = "";
+		String cycleIDEnd = "";
 		if (startNode.hasProperty("cycleRepID")) {
-			cycleIDStart = startNode.getProperties("cycleRepID").toString();
+			cycleIDStart = startNode.getProperty("cycleRepID").toString();
 		}
 		if (endNode.hasProperty("cycleRepID")) {
-			cycleIDEnd = endNode.getProperties("cycleRepID").toString();
+			cycleIDEnd = endNode.getProperty("cycleRepID").toString();
 		}
-		
-		// 3) if both are in a cycle
-		if (cycleIDStart != null && cycleIDEnd != null) {
-			// same Cycle -> return true
-			if (cycleIDStart.equals(cycleIDEnd)) {
+
+		if(cycleIDStart.equals(cycleIDEnd) && !cycleIDEnd.equals("") && !cycleIDStart.equals("")){
+			Stream<Reachability> result = Stream.of(new Reachability(true));
+			return result;
+		}
+
+		//3) filter on first time fail
+		if(!checkFilter(startNode, endNode)){
+				return Stream.of(new Reachability(false));
+		}
+
+		//4) have to check children
+		Set<Long> visited = new HashSet<>();
+		Queue<Node> adjacentsList = new LinkedList<>();
+
+		for(Relationship r : startNode.getRelationships(Direction.OUTGOING)){
+			if(achievedGoal(r.getEndNode(), endNode)){
 				return Stream.of(new Reachability(true));
-			} 
-			// different Cycles -> Check BF for CycleIDs
-			else {
-				if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
-					//TODO throw exception - not indexed
+			}
+			if(checkFilter(r.getEndNode(), endNode)){
+				adjacentsList.add(r.getEndNode());
+			}
+		}
+
+		while(adjacentsList.size() > 0){
+			Node n = adjacentsList.poll();
+
+			//check children of the child
+			for(Relationship r : n.getRelationships(Direction.OUTGOING)){
+				if(achievedGoal(r.getEndNode(), endNode)){
+					return Stream.of(new Reachability(true));
 				}
-				
-				String filterValue;
-				
-				// endNodeCycle in lout of startNodeCycle?
-				filterValue = startNode.getProperty("Lout").toString();
-				if(!filter.check(cycleIDEnd, filterValue)){
-					Stream<Reachability> result = Stream.of(new Reachability(false));
-					return result;
-				}	
-				// startNodeCylce in lin of endNodeCylce?
-				filterValue = endNode.getProperty("Lin").toString();
-				if(!filter.check(cycleIDStart, filterValue)){
-					Stream<Reachability> result = Stream.of(new Reachability(false));
-					return result;
+
+				long id;
+				if(r.getEndNode().hasProperty("cycleRepID")){
+					id = dbs.getNodeById(Long.valueOf(r.getEndNode().getProperty("cycleRepID").toString())).getId();
+					//todo outgoing cycles relationships
+					Node repNode = dbs.getNodeById(Long.valueOf(r.getEndNode().getProperty("cycleRepID").toString()));
+					Set<Node> tmp =  CycleNodesGenerator.findNeighbours(repNode);
+					for (Node el : CycleNodesGenerator.findNeighbours(repNode)){
+						adjacentsList.add(el);
+					}
+				} else {
+					id = r.getEndNodeId();
 				}
-			}	
-		}
-		
-		// 4) if startNode is in a cycle
-		if (cycleIDStart != null && cycleIDEnd == null) {
-			if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
-				//TODO throw exception - not indexed
-			}
-			
-			String filterValue;
-			
-			// endNode in lout of startNodeCycle?
-			filterValue = startNode.getProperty("Lout").toString();
-			if(!filter.check(Long.toString(endNode.getId()), filterValue)){
-				Stream<Reachability> result = Stream.of(new Reachability(false));
-				return result;
-			}	
-			// startNodeCylce in lin of endNode?
-			filterValue = endNode.getProperty("Lin").toString();
-			if(!filter.check(cycleIDStart, filterValue)){
-				Stream<Reachability> result = Stream.of(new Reachability(false));
-				return result;
-			}	
-		}
-		
-		// 5) if EndNode is in a cycle
-		if (cycleIDStart == null && cycleIDEnd != null) {
-			if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
-				//TODO throw exception - not indexed
-			}
-			
-			String filterValue;
-			
-			// endNodeCycle in lout of startNode?
-			filterValue = startNode.getProperty("Lout").toString();
-			if(!filter.check(cycleIDEnd, filterValue)){
-				Stream<Reachability> result = Stream.of(new Reachability(false));
-				return result;
-			}	
-			// startNode in lin of endNodeCycle?
-			filterValue = endNode.getProperty("Lin").toString();
-			if(!filter.check(Long.toString(startNode.getId()), filterValue)){
-				Stream<Reachability> result = Stream.of(new Reachability(false));
-				return result;
-			}	
-		}
-		
-		// 6) no cycles
-		if (cycleIDStart == null && cycleIDEnd == null) {
-			if (startNode.hasProperty("Lout") || endNode.hasProperty("Lin")) {
-				//TODO throw exception - not indexed
-			}
-			
-			String filterValue;
-			
-			//endNode in lout of startNode?
-			filterValue = startNode.getProperty("Lout").toString();
-			if(!filter.check(Long.toString(endNode.getId()), filterValue)){
-				Stream<Reachability> result = Stream.of(new Reachability(false));
-				return result;
-			}
-			
-			//startNode in lin of endNode?
-			filterValue = endNode.getProperty("Lin").toString();
-			if(!filter.check(Long.toString(startNode.getId()), filterValue)){
-				Stream<Reachability> result = Stream.of(new Reachability(false));
-				return result;
-			}
-		}
-			
-
-		// 7) so far true, lets check children (BSF)
-		// TODO: use Cycle Infos for faster searc
-		ArrayList<Long> visited = new ArrayList<>();
-		ArrayList<Node> adjacentsList = new ArrayList<>();
-		String filterValue = "";
-		String nodeId = "";
-
-		Iterable<Relationship> children = startNode.getRelationships(Direction.OUTGOING);
-		for(Relationship r : children){
-			Node n = r.getEndNode();
-			adjacentsList.add(n);
-		}
-
-		//BSF
-		while(adjacentsList.size()>0){
-			Node curNode = adjacentsList.get(0);
-			adjacentsList.remove(0);
-			children = curNode.getRelationships(Direction.OUTGOING);
-
-			if(curNode.getId() == endNode.getId()){
-				Stream<Reachability> result = Stream.of(new Reachability(true));
-				return result;
-			}
-
-			for(Relationship r : children){
-				Node m = r.getEndNode();
-				if(!visited.contains(m.getId())){
-					visited.add(m.getId());
-					adjacentsList.add(m);
-
-					//check reachability of m
-					//checking if m is in Lin of endNode
-					if(endNode.hasProperty("Lin")){
-						filterValue = endNode.getProperty("Lin").toString();
-					} else {
-						//TODO throw exception - not indexed
+				if(!visited.contains(id)){
+					if(checkFilter(r.getEndNode(), endNode)){
+						adjacentsList.add(r.getEndNode());
 					}
-					nodeId = Long.toString(m.getId());
-					if(!filter.check(nodeId, filterValue)){
-						Stream<Reachability> result = Stream.of(new Reachability(false));
-						return result;
-					}
-
-					//checking if endNode is in Lout of m
-					if(m.hasProperty("Lout")){
-						filterValue = m.getProperty("Lout").toString();
-					} else {
-						//TODO throw exception - not indexed
-					}
-					nodeId = Long.toString(endNode.getId());
-					if(!filter.check(nodeId, filterValue)){
-						Stream<Reachability> result = Stream.of(new Reachability(false));
-						return result;
-					}
-
-
 				}
-			}
 
+
+				visited.add(id);
+			}
 		}
 
-		System.out.println("ERROR");
-		return null;
+		return Stream.of(new Reachability(false));
 	}
 
+	private boolean checkFilter(Node start, Node end){
+		BloomFilter filter = new BloomFilter();
+
+		if(start.hasProperty("cycleRepID")){
+			start = dbs.getNodeById(Long.valueOf(start.getProperty("cycleRepID").toString()));
+		}
+
+		if(end.hasProperty("cycleRepID")){
+			end = dbs.getNodeById(Long.valueOf(end.getProperty("cycleRepID").toString()));
+		}
+
+		Long startId = start.getId();
+		Long endId = end.getId();
+
+		String filterValue = "";
+
+		//checking L_in
+		if(end.hasProperty("Lin")){
+			filterValue = end.getProperty("Lin").toString();
+			if(!filter.check(startId.toString(), filterValue)){
+				return false;
+			}
+		}
+
+		//checking L_out
+		if(start.hasProperty("Lout")){
+			filterValue = start.getProperty("Lout").toString();
+			if(!filter.check(endId.toString(), filterValue)){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private boolean achievedGoal(Node n, Node endNode){
+		//todo achieved goal cycle return also true
+		if(n.getId() == endNode.getId()){
+			return true;
+		} else {
+			return false;
+		}
+
+	}
 	//neo4j need a class, returns of procedures have to be streams
 	//can have -> also pass into reachability the path to the node (?)
 	public class Reachability {
