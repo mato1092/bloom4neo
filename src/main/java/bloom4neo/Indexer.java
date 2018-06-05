@@ -89,7 +89,7 @@ public class Indexer {
 	}
 	
 	/**
-	 * Checks reachability between two Node lists 
+	 * Checks reachability between two Node lists
 	 * @param startNodes
 	 * @param endNodes
 	 * @return a List<NodePairResult> with the results
@@ -98,9 +98,17 @@ public class Indexer {
 	public List<NodePairResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
 		Reachability reach = new Reachability();
 		List<NodePairResult> res = new ArrayList<NodePairResult>();
+		/*
+		 * start of cycle handling part
+		 * TODO: this seems overly complex; see whether this can be simplified and whether it's worth the trouble
+		 */
+		// startNodes with cycle representatives instead of cycle members
 		List<Node> start = new ArrayList<Node>();
+		// endNodes with cycle representatives instead of cycle members
 		List<Node> end = new ArrayList<Node>();
+		// maps cycle members from startNodes to their representatives
 		Map<Long, List<Node>> startCycleMap = new HashMap<Long, List<Node>>();
+		// maps cycle members from startNodes to their representatives
 		Map<Long, List<Node>> endCycleMap = new HashMap<Long, List<Node>>();
 		long cycleRepID;
 		for(Node n : startNodes) {
@@ -147,7 +155,10 @@ public class Indexer {
 				}
 			}
 		}
-		
+
+		/*
+		 * end of cycle handling part
+		 */
 		for(Node a : start) {
 			for(Node b: end) {
 				// if not added yet
