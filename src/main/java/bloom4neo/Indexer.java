@@ -1,7 +1,9 @@
 package bloom4neo;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -12,9 +14,8 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 
 import bloom4neo.util.CycleNodesGenerator;
-import bloom4neo.util.ReachQueryResult;
 import bloom4neo.util.IndexGeneratorV2;
-import bloom4neo.util.MassReachResult;
+import bloom4neo.util.NodePairResult;
 import bloom4neo.util.Reachability;
 
 public class Indexer {
@@ -66,7 +67,7 @@ public class Indexer {
 	 * Checks whether a path between startNode and endNode exists
 	 * @param startNode
 	 * @param endNode
-	 * @return a Stream<ReachQueryResult> with the result as boolean
+	 * @return the result as boolean
 	 */
 	@UserFunction(value = "bloom4neo.checkReachability")
 	public boolean procedure_checkReachability(@Name("startNode") Object startNode, @Name("endNode") Object endNode) {
@@ -87,18 +88,102 @@ public class Indexer {
 		return res;
 	}
 	
-//	/**
-//	 * Checks which pairs of Nodes have paths between two Node lists 
-//	 * @param startNodes
-//	 * @param endNodes
-//	 * @return a Stream<MassReachResult> with the results as pairs of nodes
-//	 */
-//	@Procedure(name = "massReachability", mode = Mode.READ)
-//	public Stream<MassReachResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
-//		Reachability reach = new Reachability();
-//		MassReachResult res = new MassReachResult();
-//
-//		return Stream.of(res);
-//	}
+	/**
+	 * Checks reachability between two Node lists 
+	 * @param startNodes
+	 * @param endNodes
+	 * @return a List<NodePairResult> with the results
+	 */
+	@UserFunction(value = "bloom4neo.massReachability")
+	public List<NodePairResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
+		Reachability reach = new Reachability();
+		List<NodePairResult> res = new ArrayList<NodePairResult>();
+		List<Node> start = new ArrayList<Node>();
+		List<Node> end = new ArrayList<Node>();
+		Map<Long, List<Node>> startCycleMap = new HashMap<Long, List<Node>>();
+		Map<Long, List<Node>> endCycleMap = new HashMap<Long, List<Node>>();
+		long cycleRepID;
+		for(Node n : startNodes) {
+			if(n.hasProperty("cycleRepID")) {
+				cycleRepID = (long) n.getProperty("cycleRepID");
+				if(startCycleMap.containsKey(cycleRepID)) {
+					startCycleMap.get(cycleRepID).add(n);
+				}
+				else {
+					start.add(dbs.getNodeById(cycleRepID));
+					List<Node> newCycle = new ArrayList<Node>();
+					newCycle.add(n);
+					startCycleMap.put(cycleRepID, newCycle);
+				}
+			}
+			else {
+				start.add(n);
+			}
+		}
+		for(Node n : endNodes) {
+			if(n.hasProperty("cycleRepID")) {
+				cycleRepID = (long) n.getProperty("cycleRepID");
+				if(endCycleMap.containsKey(cycleRepID)) {
+					endCycleMap.get(cycleRepID).add(n);
+				}
+				else {
+					end.add(dbs.getNodeById(cycleRepID));
+					List<Node> newCycle = new ArrayList<Node>();
+					newCycle.add(n);
+					endCycleMap.put(cycleRepID, newCycle);
+				}
+			}
+			else {
+				end.add(n);
+			}
+		}
+		// if nodes from a cycle come up in both startNodes and endNodes, add these pairs to the result
+		for(Long id : endCycleMap.keySet()) {
+			if(startCycleMap.keySet().contains(id)) {
+				for(Node n : startCycleMap.get(id)) {
+					for(Node m : endCycleMap.get(id)) {
+						res.add(new NodePairResult(n, m));
+					}
+				}
+			}
+		}
+		
+		for(Node a : start) {
+			for(Node b: end) {
+				// if not added yet
+				if(!(startCycleMap.keySet().contains(a.getId()) && a.getId() == b.getId())) {
+					if(reach.query(a, b)) {
+						if(startCycleMap.keySet().contains(a.getId())) {
+							if(endCycleMap.keySet().contains(b.getId())) {
+								for(Node n : startCycleMap.get(a.getId())) {
+									for(Node m : startCycleMap.get(b.getId())) {
+										res.add(new NodePairResult(n, m));
+									}
+								}
+							}
+							else {
+								for(Node n : startCycleMap.get(a.getId())) {
+									res.add(new NodePairResult(n, b));
+								}
+							}
+						}
+						else {
+							if(endCycleMap.keySet().contains(b.getId())) {
+								for(Node n : startCycleMap.get(a.getId())) {
+									res.add(new NodePairResult(a, n));
+								}
+							}
+							else{
+								res.add(new NodePairResult(a, b));
+							}
+						}
+					
+					}
+				}
+			}
+		}
+		
+		return res;
+	}
 
 }
