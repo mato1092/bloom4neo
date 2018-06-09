@@ -44,7 +44,7 @@ public class IndexationTest
             session.run(create);
             
 
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
 
 
             int count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").asInt();
@@ -97,7 +97,7 @@ public class IndexationTest
 
             session.run(create);
             
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
 
             int count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").asInt();
             // count should be 7 because there are 6 nodes outside of SCCs + 1 SCC representative
@@ -149,9 +149,9 @@ public class IndexationTest
 
             session.run(create);
             
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
 
-            session.run("CALL deleteIndex");
+            session.run("CALL bloom4neo.deleteIndex");
             
             int count = session.run("match(n) where exists (n.Lin) return count(n)").next().get("count(n)").asInt();
             // count should be 0
