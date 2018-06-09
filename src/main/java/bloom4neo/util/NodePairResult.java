@@ -6,6 +6,7 @@ public class NodePairResult
 {
     public final Node a;
     public final Node b;
+    
     public NodePairResult( Node a, Node b )
     {
         this.a = a;

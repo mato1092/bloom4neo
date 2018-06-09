@@ -92,6 +92,29 @@ public class Indexer {
 	}
 	
 	/**
+	 * Checks reachability between two Node lists - simplified version
+	 * @param startNodes
+	 * @param endNodes
+	 * @return a Stream<NodePairResult> with the results
+	 */
+	@Procedure(name = "bloom4neo.massReachSimple", mode = Mode.READ)
+	public Stream<NodePairResult> procedure_massReachSimple(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
+		Reachability reach = new Reachability();
+		List<NodePairResult> res = new ArrayList<NodePairResult>();
+		Set<Node> start = new HashSet<Node>(startNodes);
+		Set<Node> end = new HashSet<Node>(endNodes);
+		for(Node a : start) {
+			for(Node b: end) {
+				if(reach.query(a, b)) {
+					NodePairResult tba = new NodePairResult(a, b);
+					res.add(tba);
+				}
+			}
+		}
+		
+		return res.stream();
+	}
+	/**
 	 * Checks reachability between two Node lists
 	 * @param startNodes
 	 * @param endNodes
@@ -100,7 +123,7 @@ public class Indexer {
 	@Procedure(name = "bloom4neo.massReachability", mode = Mode.READ)
 	public Stream<NodePairResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
 		Reachability reach = new Reachability();
-		Set<NodePairResult> res = new HashSet<NodePairResult>();
+		List<NodePairResult> res = new ArrayList<NodePairResult>();
 		/*
 		 * start of cycle handling part
 		 * TODO: this seems overly complex; see whether this can be simplified and whether it's worth the trouble
@@ -110,9 +133,9 @@ public class Indexer {
 		// endNodes with cycle representatives instead of cycle members
 		Set<Node> end = new HashSet<Node>();
 		// maps cycle members from startNodes to their representatives
-		Map<Long, List<Node>> startCycleMap = new HashMap<Long, List<Node>>();
+		Map<Long, Set<Node>> startCycleMap = new HashMap<Long, Set<Node>>();
 		// maps cycle members from startNodes to their representatives
-		Map<Long, List<Node>> endCycleMap = new HashMap<Long, List<Node>>();
+		Map<Long, Set<Node>> endCycleMap = new HashMap<Long, Set<Node>>();
 		long cycleRepID;
 		for(Node n : startNodes) {
 			if(n.hasProperty("cycleRepID")) {
@@ -122,7 +145,7 @@ public class Indexer {
 				}
 				else {
 					start.add(dbs.getNodeById(cycleRepID));
-					List<Node> newCycle = new ArrayList<Node>();
+					Set<Node> newCycle = new HashSet<Node>();
 					newCycle.add(n);
 					startCycleMap.put(cycleRepID, newCycle);
 				}
@@ -139,7 +162,7 @@ public class Indexer {
 				}
 				else {
 					end.add(dbs.getNodeById(cycleRepID));
-					List<Node> newCycle = new ArrayList<Node>();
+					Set<Node> newCycle = new HashSet<Node>();
 					newCycle.add(n);
 					endCycleMap.put(cycleRepID, newCycle);
 				}
@@ -159,7 +182,6 @@ public class Indexer {
 				}
 			}
 		}
-
 		/*
 		 * end of cycle handling part
 		 */
@@ -204,5 +226,4 @@ public class Indexer {
 		
 		return res.stream();
 	}
-
 }
