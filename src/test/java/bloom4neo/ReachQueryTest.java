@@ -45,7 +45,7 @@ public class ReachQueryTest
 
             session.run(create);
             
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
             
             // 0~>3
             assertTrue(session.run("return bloom4neo.checkReachability(0, 3) as result").next().get("result").asBoolean());
@@ -86,7 +86,7 @@ public class ReachQueryTest
 
             session.run(create);
             
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
             
             // 0~>3
             assertTrue(session.run("return bloom4neo.checkReachability(0, 3) as result").next().get("result").asBoolean());
@@ -162,7 +162,7 @@ public class ReachQueryTest
 
             session.run(create);
             
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
             
             // 3~>10
             assertTrue(session.run("return bloom4neo.checkReachability(3, 10) as result").next().get("result").asBoolean());
@@ -233,7 +233,7 @@ public class ReachQueryTest
 
             session.run(create);
             
-            session.run("CALL createIndex");
+            session.run("CALL bloom4neo.createIndex");
             
             System.out.println("-*-*-*-*-*-*-*-*-");
             System.out.println(session.run("match (m:NodeCycle) match (n:NodeNormal) with collect (m) as cycl, collect(n) as norm "
