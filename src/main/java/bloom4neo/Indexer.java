@@ -2,8 +2,11 @@ package bloom4neo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -28,7 +31,7 @@ public class Indexer {
 	 * 1. Detect Cycles and Create Cycle-Nodes. <br>
 	 * 2. create Index
 	 */
-	@Procedure(name = "createIndex", mode = Mode.WRITE)
+	@Procedure(name = "bloom4neo.createIndex", mode = Mode.WRITE)
 	public void procedure_createIndex() {
 		// 1. Detect Cycles and Create Cycle-Nodes
 		CycleNodesGenerator.generateCycleNodes(dbs);
@@ -41,7 +44,7 @@ public class Indexer {
 	/**
 	 * Deletes index and generated SCC representatives 
 	 */
-	@Procedure(name = "deleteIndex", mode = Mode.WRITE)
+	@Procedure(name = "bloom4neo.deleteIndex", mode = Mode.WRITE)
 	public void procedure_deleteIndex() {
 
 		for(Node n : dbs.getAllNodes()) {
@@ -92,20 +95,20 @@ public class Indexer {
 	 * Checks reachability between two Node lists
 	 * @param startNodes
 	 * @param endNodes
-	 * @return a List<NodePairResult> with the results
+	 * @return a Stream<NodePairResult> with the results
 	 */
-	@UserFunction(value = "bloom4neo.massReachability")
-	public List<NodePairResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
+	@Procedure(name = "bloom4neo.massReachability", mode = Mode.READ)
+	public Stream<NodePairResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
 		Reachability reach = new Reachability();
-		List<NodePairResult> res = new ArrayList<NodePairResult>();
+		Set<NodePairResult> res = new HashSet<NodePairResult>();
 		/*
 		 * start of cycle handling part
 		 * TODO: this seems overly complex; see whether this can be simplified and whether it's worth the trouble
 		 */
 		// startNodes with cycle representatives instead of cycle members
-		List<Node> start = new ArrayList<Node>();
+		Set<Node> start = new HashSet<Node>();
 		// endNodes with cycle representatives instead of cycle members
-		List<Node> end = new ArrayList<Node>();
+		Set<Node> end = new HashSet<Node>();
 		// maps cycle members from startNodes to their representatives
 		Map<Long, List<Node>> startCycleMap = new HashMap<Long, List<Node>>();
 		// maps cycle members from startNodes to their representatives
@@ -150,7 +153,8 @@ public class Indexer {
 			if(startCycleMap.keySet().contains(id)) {
 				for(Node n : startCycleMap.get(id)) {
 					for(Node m : endCycleMap.get(id)) {
-						res.add(new NodePairResult(n, m));
+						NodePairResult tba = new NodePairResult(n, m);
+						res.add(tba);
 					}
 				}
 			}
@@ -168,24 +172,28 @@ public class Indexer {
 							if(endCycleMap.keySet().contains(b.getId())) {
 								for(Node n : startCycleMap.get(a.getId())) {
 									for(Node m : startCycleMap.get(b.getId())) {
-										res.add(new NodePairResult(n, m));
+										NodePairResult tba = new NodePairResult(n, m);
+										res.add(tba);
 									}
 								}
 							}
 							else {
 								for(Node n : startCycleMap.get(a.getId())) {
-									res.add(new NodePairResult(n, b));
+									NodePairResult tba = new NodePairResult(n, b);
+									res.add(tba);
 								}
 							}
 						}
 						else {
 							if(endCycleMap.keySet().contains(b.getId())) {
 								for(Node n : startCycleMap.get(a.getId())) {
-									res.add(new NodePairResult(a, n));
+									NodePairResult tba = new NodePairResult(a, n);
+									res.add(tba);
 								}
 							}
 							else{
-								res.add(new NodePairResult(a, b));
+								NodePairResult tba = new NodePairResult(a, b);
+								res.add(tba);
 							}
 						}
 					
@@ -194,7 +202,7 @@ public class Indexer {
 			}
 		}
 		
-		return res;
+		return res.stream();
 	}
 
 }
