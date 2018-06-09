@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 public class BloomFilter {
 	
 	// length of the Lin and Lout value. Must be a Power of 2!
-	private int length = 16;
+	private int length = 128;
 	
 	// for uninitialized Lin or Lout values
 	private String init = StringUtils.repeat("0",  length);
