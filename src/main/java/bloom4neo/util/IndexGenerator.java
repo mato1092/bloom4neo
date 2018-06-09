@@ -17,12 +17,14 @@ public abstract class IndexGenerator {
 
 	public static void generateIndex(GraphDatabaseService dbs) {
 		
+		
+		
 		//todo just get all nodes without lin or lout property -> maybe it will make the indexation a little bit faster
 		//indexation for each node
 		for (Node n: dbs.getAllNodes()) {
 
 			long nodeID = n.getId();
-			System.out.println("Start indexation of node " + n.toString());
+			//System.out.println("Start indexation of node " + n.toString());
 			//node in cycle --> use nodeRepId of filtering
 			if(n.hasProperty("cycleRepID")){
 				nodeID = Long.valueOf(n.getProperty("cycleRepID").toString());
@@ -32,7 +34,7 @@ public abstract class IndexGenerator {
 			Queue<Node> adjacentsList = new LinkedList<>();
 
 			//mark the node is indexation was successfully
-			n.setProperty("index", true);
+			//n.setProperty("index", true);
 			adjacentsList.add(n);
 
 			//todo: discuss - adding node self --> cycle node to cycle node? really node to cycle node?
