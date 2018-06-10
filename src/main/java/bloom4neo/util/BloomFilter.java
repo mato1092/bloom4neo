@@ -202,7 +202,7 @@ public class BloomFilter {
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
 			if((long) n.getProperty(cycleDegree) != 0) {
 				// set of outgoing or incoming neighbours of the SCC of n
-				Set<Node> nextNodes = CycleNodesGenerator.findNeighbours(n, d);
+				Set<Node> nextNodes = CycleNodesGenerator.findNeighbourNodes(n, d);
 				byte[] bfV;
 				for(Node v : nextNodes) {
 					if(!v.hasProperty(property)) {

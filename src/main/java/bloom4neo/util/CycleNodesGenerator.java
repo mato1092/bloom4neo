@@ -3,6 +3,7 @@ package bloom4neo.util;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -109,18 +110,48 @@ public abstract class CycleNodesGenerator {
 			}
 		}
 		
-		for (Node n: dbs.getAllNodes()) {
-			System.out.println(n.getAllProperties().toString());
-		}
+//		for (Node n: dbs.getAllNodes()) {
+//			System.out.println(n.getAllProperties().toString());
+//		}
 	}
 	
 	/**
 	 * Finds all neighbours of the cycle represented by n in the direction d
 	 * @param n cycle representative
 	 * @param d direction
-	 * @return set of neighbours
+	 * @return set of neighbour node IDs
 	 */
-	public static Set<Node> findNeighbours(Node n, Direction d){
+	public static Set<Long> findNeighbours(Node n, Direction d){
+		Set<Long> neighbours = new HashSet<Long>();
+		Node v;
+		GraphDatabaseService dbs = n.getGraphDatabase();
+		long[] members = (long[]) n.getProperty("cycleMembers");
+		Set<Long> memberSet = new HashSet<Long>();
+		for (long m : members) {
+			memberSet.add(m);
+		}
+		for(Long id : memberSet) {
+			v = dbs.getNodeById(id);
+			for(Relationship r : v.getRelationships(d)) {
+				if(d == Direction.OUTGOING) {
+						neighbours.add(r.getEndNodeId());		
+				}
+				else {
+						neighbours.add(r.getEndNodeId());	
+				}
+			}
+		}
+		neighbours.removeAll(memberSet);
+		return neighbours;
+	}
+
+	/**
+	 * Finds all neighbours of the cycle represented by n in the direction d
+	 * @param n cycle representative
+	 * @param d direction
+	 * @return set of neighbour nodes
+	 */
+	public static Set<Node> findNeighbourNodes(Node n, Direction d){
 		Set<Node> neighbours = new HashSet<Node>();
 		Node v;
 		GraphDatabaseService dbs = n.getGraphDatabase();
@@ -133,18 +164,20 @@ public abstract class CycleNodesGenerator {
 			v = dbs.getNodeById(id);
 			for(Relationship r : v.getRelationships(d)) {
 				if(d == Direction.OUTGOING) {
-					if(!memberSet.contains(r.getEndNodeId())) {
-						neighbours.add(r.getEndNode());						
-					}
+						neighbours.add(r.getEndNode());		
 				}
 				else {
-					if(!memberSet.contains(r.getStartNodeId())) {
-						neighbours.add(r.getStartNode());						
-					}
+						neighbours.add(r.getStartNode());	
 				}
 			}
 		}
+		List<Node> toRemove = new ArrayList<Node>();
+		for(Node m : neighbours) {
+			if(memberSet.contains(m.getId())) {
+				toRemove.add(m);
+			}
+		}
+		neighbours.removeAll(toRemove);
 		return neighbours;
 	}
-
 }

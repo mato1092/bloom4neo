@@ -56,7 +56,7 @@ public class DepthFirstSearch {
 		incrementCurrent();
 		// if n representative of an SCC
 		if(n.hasProperty("cycleMembers")) {
-			Set<Node> outList = CycleNodesGenerator.findNeighbours(n, Direction.OUTGOING);
+			Set<Node> outList = CycleNodesGenerator.findNeighbourNodes(n, Direction.OUTGOING);
 			n.setProperty("Ldis", getCurrent());
 			// if indexing info should be stored on SCC members, remove comment from next loop
 //			for(Node v : outList) {

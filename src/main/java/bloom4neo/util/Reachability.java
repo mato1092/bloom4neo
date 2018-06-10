@@ -4,14 +4,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 public class Reachability {
 	private Set<Long> visitedNodes;
+	private GraphDatabaseService dbs;
 	
-	public Reachability() {
+	public Reachability(GraphDatabaseService gdbs) {
 		this.visitedNodes = new HashSet<Long>();
+		this.dbs = gdbs;
 	}
 
 	/**
@@ -25,7 +28,7 @@ public class Reachability {
 		Node v = endNode;
 		// if endNode SCC member, work with representative instead
 		if(endNode.hasProperty("cycleRepID")) {
-			v = endNode.getGraphDatabase().getNodeById((long) endNode.getProperty("cycleRepID"));
+			v = dbs.getNodeById((long) endNode.getProperty("cycleRepID"));
 		}
 		return doQuery(startNode, v);
 	}
@@ -37,13 +40,22 @@ public class Reachability {
 	 * @return
 	 */
 	private boolean doQuery(Node startNode, Node endNode) {
-		Node u = startNode;
+		Node u;
 		Node v = endNode;
 		// if startNode SCC member, work with representative instead
 		if(startNode.hasProperty("cycleRepID")) {
-			u = startNode.getGraphDatabase().getNodeById((long) startNode.getProperty("cycleRepID"));
+			u = dbs.getNodeById((long) startNode.getProperty("cycleRepID"));
+		}
+		else {
+			u = startNode;
 		}
 		addVisited(u);
+		// if u SCC representative, add all SCC members to visitedNodes
+		if(u.hasProperty("cycleMembers")) {
+			for(long id : (long[]) u.getProperty("cycleMembers")) {
+				addVisited(id);
+			}
+		}
 		
 		// Check reachability based on Ldis and Lfin from DFS
 		if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
@@ -59,7 +71,6 @@ public class Reachability {
 		if(!u.hasProperty("cycleMembers")) {
 			for(Relationship r : u.getRelationships(Direction.OUTGOING)) {
 				if(!wasVisited(r.getEndNodeId())) {
-					addVisited(r.getEndNodeId());
 					// if there is a path u -> x ~> v, return true
 					if(doQuery(r.getEndNode(), v)) {
 						return true;
@@ -69,12 +80,10 @@ public class Reachability {
 		}
 		// 	if u is SCC representative, DFS through SCCs undiscovered successors
 		else {
-			Set<Node> successors = CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING);
-			for(Node s : successors) {
+			for(long s : CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING)) {
 				if(!wasVisited(s)) {
-					addVisited(s);
 					// if there is a path u -> s ~> v, return true
-					if(doQuery(s, v)) {
+					if(doQuery(dbs.getNodeById(s), v)) {
 						return true;
 					}
 				}

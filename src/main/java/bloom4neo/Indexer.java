@@ -74,7 +74,7 @@ public class Indexer {
 	 */
 	@UserFunction(value = "bloom4neo.checkReachability")
 	public boolean procedure_checkReachability(@Name("startNode") Object startNode, @Name("endNode") Object endNode) {
-		Reachability reach = new Reachability();
+		Reachability reach = new Reachability(dbs);
 		boolean res = false;
 		// if arguments are node IDs
 		if(startNode instanceof Long && endNode instanceof Long) {
@@ -99,7 +99,7 @@ public class Indexer {
 	 */
 	@Procedure(name = "bloom4neo.massReachSimple", mode = Mode.READ)
 	public Stream<NodePairResult> procedure_massReachSimple(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
-		Reachability reach = new Reachability();
+		Reachability reach = new Reachability(dbs);
 		List<NodePairResult> res = new ArrayList<NodePairResult>();
 		Set<Node> start = new HashSet<Node>(startNodes);
 		Set<Node> end = new HashSet<Node>(endNodes);
@@ -122,7 +122,7 @@ public class Indexer {
 	 */
 	@Procedure(name = "bloom4neo.massReachability", mode = Mode.READ)
 	public Stream<NodePairResult> procedure_massReachability(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
-		Reachability reach = new Reachability();
+		Reachability reach = new Reachability(dbs);
 		List<NodePairResult> res = new ArrayList<NodePairResult>();
 		/*
 		 * start of cycle handling part
