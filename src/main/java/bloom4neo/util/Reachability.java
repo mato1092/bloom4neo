@@ -40,22 +40,20 @@ public class Reachability {
 	 * @return
 	 */
 	private boolean doQuery(Node startNode, Node endNode) {
-		Node u;
+		Node u = startNode;
 		Node v = endNode;
 		// if startNode SCC member, work with representative instead
 		if(startNode.hasProperty("cycleRepID")) {
 			u = dbs.getNodeById((long) startNode.getProperty("cycleRepID"));
 		}
-		else {
-			u = startNode;
-		}
 		addVisited(u);
-		// if u SCC representative, add all SCC members to visitedNodes
-		if(u.hasProperty("cycleMembers")) {
-			for(long id : (long[]) u.getProperty("cycleMembers")) {
-				addVisited(id);
-			}
-		}
+//		// if u SCC representative, add all SCC members to visitedNodes
+//		// currently not needed
+//		if(u.hasProperty("cycleMembers")) {
+//			for(long id : (long[]) u.getProperty("cycleMembers")) {
+//				addVisited(id);
+//			}
+//		}
 		
 		// Check reachability based on Ldis and Lfin from DFS
 		if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
@@ -70,9 +68,13 @@ public class Reachability {
 		// 	if u is not part of an SCC, DFS through undiscovered successors
 		if(!u.hasProperty("cycleMembers")) {
 			for(Relationship r : u.getRelationships(Direction.OUTGOING)) {
-				if(!wasVisited(r.getEndNodeId())) {
+				long id = r.getEndNodeId();
+				if(r.getEndNode().hasProperty("cycleRepID")) {
+					id = (long) r.getEndNode().getProperty("cycleRepID");
+				}
+				if(!wasVisited(id)) {
 					// if there is a path u -> x ~> v, return true
-					if(doQuery(r.getEndNode(), v)) {
+					if(doQuery(dbs.getNodeById(id), v)) {
 						return true;
 					}
 				}
@@ -81,9 +83,13 @@ public class Reachability {
 		// 	if u is SCC representative, DFS through SCCs undiscovered successors
 		else {
 			for(long s : CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING)) {
-				if(!wasVisited(s)) {
-					// if there is a path u -> s ~> v, return true
-					if(doQuery(dbs.getNodeById(s), v)) {
+				long id = s;
+				if(dbs.getNodeById(s).hasProperty("cycleRepID")) {
+					id = (long) dbs.getNodeById(s).getProperty("cycleRepID");
+				}
+				if(!wasVisited(id)) {
+					// if there is a path u -> x ~> v, return true
+					if(doQuery(dbs.getNodeById(id), v)) {
 						return true;
 					}
 				}
