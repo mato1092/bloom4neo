@@ -1,9 +1,7 @@
 package bloom4neo.util;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * WIP VertexMerging algorithm <br>
@@ -125,7 +123,7 @@ public class VertexMerger {
 	 * Vertex merging based on parameters defined by VertexMerger constructor
 	 * @return Map<mergeID, List<nodeIDs>> mapping merged nodeIDs to their mergeID
 	 */
-	public Map<Long, List<Long>> merge(){
+	public List<List<Long>> merge(){
 		List<List<Long>> resultList = new ArrayList<List<Long>>();
 		for(int i = 0; i < d; i++) {
 			resultList.add(new ArrayList<Long>());
@@ -137,12 +135,7 @@ public class VertexMerger {
 			}
 			resultList.get(mergeCount).add(this.postOrder.get(i-1));
 		}
-		Map<Long, List<Long>> mergeToNode = new HashMap<Long, List<Long>>();
-		for(List<Long> nodeList : resultList) {
-			mergeToNode.put(nodeList.get(0), nodeList);
-			
-		}
-		return mergeToNode;
+		return resultList;
 	}
 
 }

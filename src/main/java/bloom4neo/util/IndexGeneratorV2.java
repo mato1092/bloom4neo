@@ -1,5 +1,9 @@
 package bloom4neo.util;
 
+import java.util.ArrayList;
+//import java.util.Arrays;
+import java.util.List;
+
 import org.neo4j.graphdb.GraphDatabaseService;
 
 public class IndexGeneratorV2 extends IndexGenerator {
@@ -24,27 +28,31 @@ public class IndexGeneratorV2 extends IndexGenerator {
 //		List<Long> postOrder = dfs.executeDFS();
 		long[] arrayPostOrder = dfs.executeDFS();
 		// Step 2: Vertex merging
-//		VertexMerger vm = new VertexMerger(postOrder);
-//		Map<Long, List<Long>> mergeMap = vm.merge();
-		VertexMerger vm = new VertexMerger(arrayPostOrder);
-		long[][] mergeArray = vm.mergeToArray();
+		List<Long> postOrder = new ArrayList<Long>();
+		for(long l : arrayPostOrder) {
+			postOrder.add(l);
+		}
+		VertexMerger vm = new VertexMerger(postOrder);
+		List<List<Long>> mergeMap = vm.merge();
+//		VertexMerger vm = new VertexMerger(arrayPostOrder);
+//		long[][] mergeArray = vm.mergeToArray();
 		// Step 3: Bloom filter hashing
-//		List<List<Long>> bfLists = BloomFilter.doBFHash(mergeMap);
-		long[][] bfArray = BloomFilter.doArrayBFHash(mergeArray);
+		List<List<Long>> bfLists = BloomFilter.doBFHash(mergeMap);
+//		long[][] bfArray = BloomFilter.doArrayBFHash(mergeArray);
 		// Storing Bloom filter index to each node in DB
-//		int s = bfLists.size();
-		int s = bfArray.length;
+		int s = bfLists.size();
+//		int s = bfLists.length;
 		for(int i = 0; i < s; i++) {
-//			List<Long> nodeList = bfLists.get(i);
-//			for(int j = 0; j < nodeList.size(); j++) {
-//				dbs.getNodeById(nodeList.get(j)).setProperty("BFID", i);
-//			}
-			for(long nodeID : bfArray[i]) {
-				if(nodeID == -1) {
-					break;
-				}
-				dbs.getNodeById(nodeID).setProperty("BFID", i);	
+			List<Long> nodeList = bfLists.get(i);
+			for(int j = 0; j < nodeList.size(); j++) {
+				dbs.getNodeById(nodeList.get(j)).setProperty("BFID", i);
 			}
+//			for(long nodeID : bfArray[i]) {
+//				if(nodeID == -1) {
+//					break;
+//				}
+//				dbs.getNodeById(nodeID).setProperty("BFID", i);	
+//			}
 		}
 		// Step 4: Computing Lin and Lout for each node
 		BloomFilter.computeBFs(dbs);

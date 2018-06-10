@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
@@ -85,8 +84,8 @@ public class BloomFilter {
 	 * @param mergeMap Map(mergeID, List(nodeID)) given by VertexMerger
 	 * @return bfLists
 	 */
-	public static List<List<Long>> doBFHash(Map<Long, List<Long>> mergeMap) {
-		long d = mergeMap.size();
+	public static List<List<Long>> doBFHash(List<List<Long>> mergeList) {
+		long d = mergeList.size();
 		long s = 160;
 		if(d <= 10) {
 			s = d;
@@ -101,12 +100,11 @@ public class BloomFilter {
 		for(int i = 0; i < s; i++) {
 			bfLists.add(new ArrayList<Long>());			
 		}
-		List<Long> mergeIDs = new ArrayList<Long>(mergeMap.keySet());
 		/* simple BF hashing to ensure fairly equal distribution of BF indices over mergeIDs
 		 * another solution may be a more randomised mapping of BFIDs to mergeIDs at the risk of more uneven distribution?
 		 */
-		for(int i = 0; i < mergeIDs.size(); i++) {
-			bfLists.get((int) (i % s)).addAll(mergeMap.get(mergeIDs.get(i)));
+		for(int i = 0; i < mergeList.size(); i++) {
+			bfLists.get((int) (i % s)).addAll(mergeList.get(i));
 		}
 		return bfLists;
 	}

@@ -103,9 +103,9 @@ public class Reachability {
 		return false;
 	}
 
-	private void addVisited(long nodeID) {
-		this.visitedNodes.add(nodeID);
-	}
+//	private void addVisited(long nodeID) {
+//		this.visitedNodes.add(nodeID);
+//	}
 	
 	private void addVisited(Node n) {
 		this.visitedNodes.add(n.getId());
@@ -115,9 +115,9 @@ public class Reachability {
 		this.visitedNodes = new HashSet<Long>();
 	}
 
-	private boolean wasVisited(Node n) {
-		return this.visitedNodes.contains(n.getId());
-	}
+//	private boolean wasVisited(Node n) {
+//		return this.visitedNodes.contains(n.getId());
+//	}
 	
 	private boolean wasVisited(long nodeID) {
 		return this.visitedNodes.contains(nodeID);
