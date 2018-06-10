@@ -25,27 +25,31 @@ public class Reachability {
 	 */
 	public boolean query(Node startNode, Node endNode) {
 		clearVisited();
-		Node v = endNode;
-		// if endNode SCC member, work with representative instead
-		if(endNode.hasProperty("cycleRepID")) {
-			v = dbs.getNodeById((long) endNode.getProperty("cycleRepID"));
-		}
-		return doQuery(startNode, v);
-	}
-	
-	/**
-	 * Reachability query inner call
-	 * @param startNode
-	 * @param endNode
-	 * @return
-	 */
-	private boolean doQuery(Node startNode, Node endNode) {
 		Node u = startNode;
 		Node v = endNode;
 		// if startNode SCC member, work with representative instead
 		if(startNode.hasProperty("cycleRepID")) {
 			u = dbs.getNodeById((long) startNode.getProperty("cycleRepID"));
 		}
+		// if endNode SCC member, work with representative instead
+		if(endNode.hasProperty("cycleRepID")) {
+			v = dbs.getNodeById((long) endNode.getProperty("cycleRepID"));
+		}
+		if(u.getId() == v.getId()) {
+			return true;
+		}
+		else {
+			return doQuery(u, v);
+		}
+	}
+	
+	/**
+	 * Reachability query inner call
+	 * @param u
+	 * @param v
+	 * @return
+	 */
+	private boolean doQuery(Node u, Node v) {
 		addVisited(u);
 //		// if u SCC representative, add all SCC members to visitedNodes
 //		// currently not needed
