@@ -115,6 +115,31 @@ public class Indexer {
 		return res.stream();
 	}
 	/**
+	 * Checks reachability between two Node lists - terminates when first path is found
+	 * @param startNodes
+	 * @param endNodes
+	 * @return the result as boolean
+	 */
+	@UserFunction(value = "bloom4neo.massReachBoolean")
+	public boolean procedure_massReachFunction(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
+		Reachability reach = new Reachability(dbs);
+		boolean res = false;
+		Set<Node> start = new HashSet<Node>(startNodes);
+		Set<Node> end = new HashSet<Node>(endNodes);
+		for(Node a : start) {
+			for(Node b: end) {
+				if(reach.query(a, b)) {
+					res = true;
+					break;
+				}
+			}
+			if(res) {
+				break;
+			}
+		}
+		return res;
+	}
+	/**
 	 * Checks reachability between two Node lists
 	 * @param startNodes
 	 * @param endNodes

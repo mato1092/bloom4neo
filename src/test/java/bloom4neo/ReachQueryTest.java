@@ -237,7 +237,7 @@ public class ReachQueryTest
             
             System.out.println("-*-*-*-*-*-*-*-*-");
             System.out.println(session.run("match (m:NodeCycle) match (n:NodeNormal) with collect (m) as cycl, collect(n) as norm "
-            						+ "call bloom4neo.massReachability(cycl, norm) yield a, b return a, b").list().size());
+            						+ "return bloom4neo.massReachBoolean(cycl, norm) as result").next().get("result").asBoolean());
             System.out.println("-*-*-*-*-*-*-*-*-");
             assertTrue(true);
             
