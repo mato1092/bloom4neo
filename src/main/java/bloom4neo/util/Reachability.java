@@ -1,6 +1,6 @@
 package bloom4neo.util;
 
-import java.util.ArrayDeque;
+import java.util.LinkedList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Relationship;
 public class Reachability {
 	private Set<Long> visitedNodes;
 	private GraphDatabaseService dbs;
-	ArrayDeque<Node> queue = new ArrayDeque<Node>();
+	LinkedList<Node> queue = new LinkedList<Node>();
 	
 	public Reachability(GraphDatabaseService gdbs) {
 		this.visitedNodes = new HashSet<Long>();
@@ -26,8 +26,8 @@ public class Reachability {
 	 * @return
 	 */
 	public boolean query(Node startNode, Node endNode) {
-		clearVisited();
-		clearQueue();
+		visitedNodes.clear();
+		queue.clear();
 		Node u = startNode;
 		Node v = endNode;
 		// if startNode SCC member, work with representative instead
@@ -53,7 +53,7 @@ public class Reachability {
 	 * @param v
 	 * @return
 	 */
-	private boolean doIterativeQuery(ArrayDeque<Node> queue, Node v) {
+	private boolean doIterativeQuery(LinkedList<Node> queue, Node v) {
 		Node u;
 		while(!queue.isEmpty()) {
 			u = queue.pop();
@@ -162,14 +162,6 @@ public class Reachability {
 	
 	private void addVisited(Node n) {
 		this.visitedNodes.add(n.getId());
-	}
-	
-	private void clearVisited() {
-		this.visitedNodes = new HashSet<Long>();
-	}
-	
-	private void clearQueue() {
-		this.queue = new ArrayDeque<Node>();
 	}
 
 //	private boolean wasVisited(Node n) {

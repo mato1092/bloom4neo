@@ -1,7 +1,6 @@
 package bloom4neo.util;
 
-import java.util.ArrayList;
-//import java.util.Arrays;
+//import java.util.ArrayList;
 import java.util.List;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -25,13 +24,13 @@ public class IndexGeneratorV2 extends IndexGenerator {
 		
 		// Step 1: DFS through DB to compute Ldis and Lfin of vertices and create post-order
 		DepthFirstSearch dfs = new DepthFirstSearch(dbs);
-//		List<Long> postOrder = dfs.executeDFS();
-		long[] arrayPostOrder = dfs.executeIterativeDFS();
+		List<Long> postOrder = dfs.executeIterativeDFS();
+//		long[] arrayPostOrder = dfs.executeIterativeDFS();
 		// Step 2: Vertex merging
-		List<Long> postOrder = new ArrayList<Long>();
-		for(long l : arrayPostOrder) {
-			postOrder.add(l);
-		}
+//		List<Long> postOrder = new ArrayList<Long>();
+//		for(long l : arrayPostOrder) {
+//			postOrder.add(l);
+//		}
 		VertexMerger vm = new VertexMerger(postOrder);
 		List<List<Long>> mergeMap = vm.merge();
 //		VertexMerger vm = new VertexMerger(arrayPostOrder);
