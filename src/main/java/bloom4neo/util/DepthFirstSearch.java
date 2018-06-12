@@ -18,7 +18,7 @@ public class DepthFirstSearch {
 	LinkedList<Long> postOrder;
 //	private long[] arrayPostOrder;
 	private ResourceIterable<Node> allNodes;
-	LinkedList<Node> queue = new LinkedList<Node>();
+	LinkedList<Long> queue = new LinkedList<Long>();
 	
 	/**
 	 * Executes Depth-first search through DB to compute Ldis & Lfin for all nodes and the post order <br>
@@ -35,7 +35,7 @@ public class DepthFirstSearch {
 				 */
 				if( ( !n.hasProperty("cycleMembers") && n.getDegree(Direction.INCOMING) == 0 )
 						|| ( n.hasProperty("cycleMembers") && (long) n.getProperty("inDegree") == 0) ) {
-					queue.push(n);
+					queue.push(n.getId());
 					while(!queue.isEmpty()) {
 						iterativeDFSVisit(queue.peek());
 					}			
@@ -49,7 +49,8 @@ public class DepthFirstSearch {
 //		return shortenedPostOrder;
 	}
 	
-	private void iterativeDFSVisit(Node n) {
+	private void iterativeDFSVisit(Long id) {
+		Node n = dbs.getNodeById(id);
 		// if n was already found by DFS: set Lfin and remove from queue
 		if(n.hasProperty("Ldis")) {
 			addToPostOrder(n.getId());
@@ -66,7 +67,7 @@ public class DepthFirstSearch {
 				n.setProperty("Ldis", incrementCurrent());
 				for(Node outNode : outList) {
 					if(!outNode.hasProperty("Ldis")) {
-						queue.push(outNode);
+						queue.push(outNode.getId());
 					}
 				}
 			}
@@ -75,7 +76,7 @@ public class DepthFirstSearch {
 				queue.pop();
 				Node cRep = dbs.getNodeById((long) n.getProperty("cycleRepID"));
 				if(!cRep.hasProperty("Ldis")) {
-					queue.push(cRep);
+					queue.push(cRep.getId());
 				}
 			}
 			// if n not part of an SCC
@@ -85,7 +86,7 @@ public class DepthFirstSearch {
 				for(Relationship r : n.getRelationships(Direction.OUTGOING)) {
 					v = r.getEndNode();
 					if(!v.hasProperty("Ldis")) {
-						queue.push(v);
+						queue.push(v.getId());
 					}
 				}
 			}
