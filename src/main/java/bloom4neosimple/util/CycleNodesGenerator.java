@@ -1,5 +1,5 @@
 
-package bloom4neo.util;
+package bloom4neosimple.util;
 
 import java.util.*;
 

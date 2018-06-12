@@ -1,4 +1,4 @@
-package bloom4neo.util;
+package bloom4neosimple.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

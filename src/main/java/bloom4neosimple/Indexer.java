@@ -1,19 +1,22 @@
-package bloom4neo;
+package bloom4neosimple;
 
-import bloom4neo.util.BloomFilter;
-import bloom4neo.util.CycleNodesGenerator;
-import bloom4neo.util.IndexGenerator;
-
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.*;
+
+import bloom4neosimple.util.BloomFilter;
+import bloom4neosimple.util.CycleNodesGenerator;
+import bloom4neosimple.util.IndexGenerator;
 
 
 
@@ -67,6 +70,64 @@ public class Indexer {
 		dbs.execute("Match (n:CYCLE_REP) delete (n)");
 		
 	}
+	
+	
+	
+	
+	
+	@Procedure(name = "bloom4neo.massReachability_V1", mode = Mode.READ)
+	public Stream<NodePairResult> procedure_massReachability_SJ(@Name("startNode") List<Node> startNodes, @Name("endNode") List<Node> endNodes) {
+		
+		List<NodePairResult> res = new ArrayList<NodePairResult>();
+		
+		System.out.println("Starting Mass-Reachability-V1");
+		
+		Set<Node> startSet = new HashSet<Node>(startNodes);
+		Set<Node> endSet = new HashSet<Node>(endNodes);
+		
+		System.out.println("StartNodesSize = " + startSet.size());
+		System.out.println("EndNodesSize = " + endSet.size());
+		System.out.println("Reachabilities To Check = " + (startSet.size()*endSet.size()));
+
+		int countChecks = 0;
+		int stepSize = (startSet.size()*endSet.size())/10;
+
+		long time = System.currentTimeMillis();
+		
+		for(Node a : startSet) {
+			for(Node b: endSet) {
+				countChecks++;
+				if (countChecks % stepSize == 0) {
+					System.out.println("Checks : " + countChecks);
+				}
+		
+				if(checkReachability(a, b)) {
+					NodePairResult tba = new NodePairResult(a, b);
+					res.add(tba);
+				}
+				
+			}
+		}
+		
+		System.out.println("Time for completing Check Nodes: " + (System.currentTimeMillis() - time));
+		
+		return res.stream();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	
 	
@@ -207,20 +268,21 @@ public class Indexer {
 
 	}
 	
-	//neo4j need a class, returns of procedures have to be streams
-	//can have -> also pass into reachability the path to the node (?)
-//	public class Reachability {
-//		public Boolean out;
-//
-//		public Reachability(Boolean out){
-//			this.out = out;
-//		}
-//
-//		public Boolean getOut(){
-//			return this.out;
-//		}
-//
-//	}
+	
+	
+
+	
+	public class NodePairResult
+	{
+	    public final Node a;
+	    public final Node b;
+	    
+	    public NodePairResult( Node a, Node b )
+	    {
+	        this.a = a;
+	        this.b = b;
+	    }
+	}
 
 
 }

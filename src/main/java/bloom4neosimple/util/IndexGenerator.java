@@ -1,4 +1,4 @@
-package bloom4neo.util;
+package bloom4neosimple.util;
 
 
 import org.neo4j.graphdb.Direction;
