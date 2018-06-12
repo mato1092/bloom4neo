@@ -36,23 +36,23 @@ public class IndexGeneratorV2 extends IndexGenerator {
 //		VertexMerger vm = new VertexMerger(arrayPostOrder);
 //		long[][] mergeArray = vm.mergeToArray();
 		// Step 3: Bloom filter hashing
-		List<List<Long>> bfLists = BloomFilter.doBFHash(mergeMap);
+		BloomFilter.doBFHashToGraph(mergeMap, dbs);
 //		long[][] bfArray = BloomFilter.doArrayBFHash(mergeArray);
 		// Storing Bloom filter index to each node in DB
-		int s = bfLists.size();
+//		int s = bfLists.size();
 //		int s = bfLists.length;
-		for(int i = 0; i < s; i++) {
-			List<Long> nodeList = bfLists.get(i);
-			for(int j = 0; j < nodeList.size(); j++) {
-				dbs.getNodeById(nodeList.get(j)).setProperty("BFID", i);
-			}
+//		for(int i = 0; i < s; i++) {
+//			List<Long> nodeList = bfLists.get(i);
+//			for(int j = 0; j < nodeList.size(); j++) {
+//				dbs.getNodeById(nodeList.get(j)).setProperty("BFID", i);
+//			}
 //			for(long nodeID : bfArray[i]) {
 //				if(nodeID == -1) {
 //					break;
 //				}
 //				dbs.getNodeById(nodeID).setProperty("BFID", i);	
 //			}
-		}
+//		}
 		// Step 4: Computing Lin and Lout for each node
 		BloomFilter.computeBFs(dbs);
 		

@@ -108,7 +108,34 @@ public class BloomFilter {
 		}
 		return bfLists;
 	}
-	
+	/**
+	 * Computes BF indices for all nodes in graph based on mergeMap from VertexMerger.
+	 * Writes BFIDs straight to graph
+	 * @param mergeMap Map(mergeID, List(nodeID)) given by VertexMerger
+	 * @return bfLists
+	 */
+	public static void doBFHashToGraph(List<List<Long>> mergeList, GraphDatabaseService dbs) {
+		int d = mergeList.size();
+		int s = 160;
+		if(d <= 10) {
+			s = d;
+		}
+		else if(d <= 100) {
+			s = d/2;
+		}
+		else if(d < 1600) {
+			s = d/5;
+		}
+		/* simple BF hashing to ensure fairly equal distribution of BF indices over mergeIDs
+		 * another solution may be a more randomised mapping of BFIDs to mergeIDs at the risk of more uneven distribution?
+		 */
+		for(int i = 0; i < mergeList.size(); i++) {
+			for(long id : mergeList.get(i)) {
+				dbs.getNodeById(id).setProperty("BFID", i % s);
+			}
+//			bfLists.get((int) (i % s)).addAll(mergeList.get(i));
+		}
+	}
 	/**
 	 * Variant of doBFHash using 2D arrays
 	 * @param mergeArray 2D array of VertexMerger results
