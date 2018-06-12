@@ -89,17 +89,17 @@ public class Indexer {
 		System.out.println("EndNodesSize = " + endSet.size());
 		System.out.println("Reachabilities To Check = " + (startSet.size()*endSet.size()));
 
-		int countChecks = 0;
-		int stepSize = (startSet.size()*endSet.size())/10;
+		//int countChecks = 0;
+		//int stepSize = (startSet.size()*endSet.size())/10;
 
 		long time = System.currentTimeMillis();
 		
 		for(Node a : startSet) {
 			for(Node b: endSet) {
-				countChecks++;
-				if (countChecks % stepSize == 0) {
-					System.out.println("Checks : " + countChecks);
-				}
+				//countChecks++;
+				//if (countChecks % stepSize == 0) {
+				//	System.out.println("Checks : " + countChecks);
+				//}
 		
 				if(checkReachability(a, b)) {
 					NodePairResult tba = new NodePairResult(a, b);
@@ -110,7 +110,7 @@ public class Indexer {
 		}
 		
 		System.out.println("Time for completing Check Nodes: " + (System.currentTimeMillis() - time));
-		
+		System.out.println("Finished Mass-Reachability-V1");
 		return res.stream();
 	}
 	
