@@ -26,7 +26,7 @@ public class IndexGeneratorV2 extends IndexGenerator {
 		// Step 1: DFS through DB to compute Ldis and Lfin of vertices and create post-order
 		DepthFirstSearch dfs = new DepthFirstSearch(dbs);
 //		List<Long> postOrder = dfs.executeDFS();
-		long[] arrayPostOrder = dfs.executeDFS();
+		long[] arrayPostOrder = dfs.executeIterativeDFS();
 		// Step 2: Vertex merging
 		List<Long> postOrder = new ArrayList<Long>();
 		for(long l : arrayPostOrder) {
