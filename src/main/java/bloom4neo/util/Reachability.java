@@ -1,5 +1,6 @@
 package bloom4neo.util;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import org.neo4j.graphdb.Relationship;
 public class Reachability {
 	private Set<Long> visitedNodes;
 	private GraphDatabaseService dbs;
+	ArrayDeque<Node> queue = new ArrayDeque<Node>();
 	
 	public Reachability(GraphDatabaseService gdbs) {
 		this.visitedNodes = new HashSet<Long>();
@@ -25,6 +27,7 @@ public class Reachability {
 	 */
 	public boolean query(Node startNode, Node endNode) {
 		clearVisited();
+		clearQueue();
 		Node u = startNode;
 		Node v = endNode;
 		// if startNode SCC member, work with representative instead
@@ -39,8 +42,58 @@ public class Reachability {
 			return true;
 		}
 		else {
-			return doQuery(u, v);
+			queue.push(u);
+			return doIterativeQuery(queue, v);
 		}
+	}
+	
+	/**
+	 * Reachability query iterative inner call
+	 * @param u
+	 * @param v
+	 * @return
+	 */
+	private boolean doIterativeQuery(ArrayDeque<Node> queue, Node v) {
+		Node u;
+		while(!queue.isEmpty()) {
+			u = queue.pop();
+			addVisited(u);
+			// Check reachability based on Ldis and Lfin from DFS
+			if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
+				return true;
+			}
+			// Check reachability based on Bloom filters
+			if(!BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),
+					(byte[]) v.getProperty("Lin"), (byte[]) v.getProperty("Lout"))) {
+				return false;
+			}
+			// if u ~> v exists based on Bloom filter, do DFS through graph
+			// 	if u is not part of an SCC, add undiscovered successors to queue
+			if(!u.hasProperty("cycleMembers")) {
+				for(Relationship r : u.getRelationships(Direction.OUTGOING)) {
+					long id = r.getEndNodeId();
+					if(r.getEndNode().hasProperty("cycleRepID")) {
+						id = (long) r.getEndNode().getProperty("cycleRepID");
+					}
+					if(!wasVisited(id)) {
+						queue.push(dbs.getNodeById(id));
+					}
+				}
+			}
+			// 	if u is SCC representative, DFS through SCCs undiscovered successors
+			else {
+				for(long s : CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING)) {
+					long id = s;
+					if(dbs.getNodeById(s).hasProperty("cycleRepID")) {
+						id = (long) dbs.getNodeById(s).getProperty("cycleRepID");
+					}
+					if(!wasVisited(id)) {
+						queue.push(dbs.getNodeById(id));
+					}
+				}
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -113,6 +166,10 @@ public class Reachability {
 	
 	private void clearVisited() {
 		this.visitedNodes = new HashSet<Long>();
+	}
+	
+	private void clearQueue() {
+		this.queue = new ArrayDeque<Node>();
 	}
 
 //	private boolean wasVisited(Node n) {
