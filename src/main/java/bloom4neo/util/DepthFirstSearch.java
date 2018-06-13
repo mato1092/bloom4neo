@@ -1,5 +1,6 @@
 package bloom4neo.util;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +27,7 @@ public class DepthFirstSearch {
 	 * @return post order
 	 */
 	public List<Long> executeIterativeDFS(){
+		Node v;
 		for(Node n : allNodes) {
 			// if n has not been discovered by DFS
 			if( !n.hasProperty("Ldis") ) {
@@ -37,7 +39,21 @@ public class DepthFirstSearch {
 						|| ( n.hasProperty("cycleMembers") && (long) n.getProperty("inDegree") == 0) ) {
 					queue.push(n.getId());
 					while(!queue.isEmpty()) {
-						iterativeDFSVisit(queue.peek());
+						v = dbs.getNodeById(queue.peek());
+						if(!v.hasProperty("Lfin")) {
+							if(!v.hasProperty("Ldis")) {
+								iterativeDFSVisit(v);
+							}
+							// if n was already found by DFS: set Lfin and remove from queue
+							else {
+								addToPostOrder(v.getId());
+								v.setProperty("Lfin", incrementCurrent());
+								queue.pop();
+							}
+						}
+						else {
+							queue.pop();
+						}
 					}			
 				}
 			}
@@ -49,50 +65,39 @@ public class DepthFirstSearch {
 //		return shortenedPostOrder;
 	}
 	
-	private void iterativeDFSVisit(Long id) {
-		Node n = dbs.getNodeById(id);
-		// if n was already found by DFS: set Lfin and remove from queue
-		if(n.hasProperty("Ldis")) {
-			addToPostOrder(n.getId());
-			if(!n.hasProperty("Lfin")) {
-				n.setProperty("Lfin", incrementCurrent());
-			}
-			queue.pop();
-		}
+	private void iterativeDFSVisit(Node n) {
 		// if n has not been found by DFS: set Ldis and 
+		// if n representative of an SCC
+		if(n.hasProperty("cycleMembers")) {
+			Set<Node> outList = CycleNodesGenerator.findNeighbourNodes(n, Direction.OUTGOING);
+			n.setProperty("Ldis", incrementCurrent());
+			for(Node outNode : outList) {
+				if(!outNode.hasProperty("Ldis")) {
+					queue.push(outNode.getId());
+				}
+			}
+		}
+		// if n member of an SCC: replace n in queue with its SCC representative
+		else if(n.hasProperty("cycleRepID")) {
+			queue.pop();
+			Node cRep = dbs.getNodeById((long) n.getProperty("cycleRepID"));
+			if(!cRep.hasProperty("Ldis")) {
+				queue.push(cRep.getId());
+			}
+		}
+		// if n not part of an SCC
 		else {
-			// if n representative of an SCC
-			if(n.hasProperty("cycleMembers")) {
-				Set<Node> outList = CycleNodesGenerator.findNeighbourNodes(n, Direction.OUTGOING);
-				n.setProperty("Ldis", incrementCurrent());
-				for(Node outNode : outList) {
-					if(!outNode.hasProperty("Ldis")) {
-						queue.push(outNode.getId());
-					}
-				}
-			}
-			// if n member of an SCC: replace n in queue with its SCC representative
-			else if(n.hasProperty("cycleRepID")) {
-				queue.pop();
-				Node cRep = dbs.getNodeById((long) n.getProperty("cycleRepID"));
-				if(!cRep.hasProperty("Ldis")) {
-					queue.push(cRep.getId());
-				}
-			}
-			// if n not part of an SCC
-			else {
-				n.setProperty("Ldis", incrementCurrent());
-				Node v;
-				for(Relationship r : n.getRelationships(Direction.OUTGOING)) {
-					v = r.getEndNode();
-					if(!v.hasProperty("Ldis")) {
-						queue.push(v.getId());
-					}
+			n.setProperty("Ldis", incrementCurrent());
+			Node v;
+			for(Relationship r : n.getRelationships(Direction.OUTGOING)) {
+				v = r.getEndNode();
+				if(!v.hasProperty("Ldis")) {
+					queue.push(v.getId());
 				}
 			}
 		}
 	}
-	
+
 //	/**
 //	 * Executes Depth-first search through DB to compute Ldis & Lfin for all nodes and the post order <br>
 //	 * Ldis and Lfin stored as properties on nodes, for SCC members they are only stored on cycle representatives <br>

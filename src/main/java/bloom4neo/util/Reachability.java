@@ -26,10 +26,10 @@ public class Reachability {
 	 * @return
 	 */
 	public boolean query(Node startNode, Node endNode) {
-		visitedNodes.clear();
-		queue.clear();
 		Node u = startNode;
 		Node v = endNode;
+		// TODO: check SCC members as well!!!
+		// TODO: otherwise not all reachable pairs are found!!!
 		// if startNode SCC member, work with representative instead
 		if(startNode.hasProperty("cycleRepID")) {
 			u = dbs.getNodeById((long) startNode.getProperty("cycleRepID"));
@@ -42,7 +42,10 @@ public class Reachability {
 			return true;
 		}
 		else {
+			queue.clear();
 			queue.push(u);
+			visitedNodes.clear();
+			visitedNodes.add(u.getId());
 			return doIterativeQuery(queue, v);
 		}
 	}
@@ -57,42 +60,47 @@ public class Reachability {
 		Node u;
 		while(!queue.isEmpty()) {
 			u = queue.pop();
-			addVisited(u);
 			// Check reachability based on Ldis and Lfin from DFS
 			if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
+				queue.clear();
 				return true;
 			}
 			// Check reachability based on Bloom filters
-			if(!BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),
+			if(BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),
 					(byte[]) v.getProperty("Lin"), (byte[]) v.getProperty("Lout"))) {
-				return false;
-			}
-			// if u ~> v exists based on Bloom filter, do DFS through graph
-			// 	if u is not part of an SCC, add undiscovered successors to queue
-			if(!u.hasProperty("cycleMembers")) {
-				for(Relationship r : u.getRelationships(Direction.OUTGOING)) {
-					long id = r.getEndNodeId();
-					if(r.getEndNode().hasProperty("cycleRepID")) {
-						id = (long) r.getEndNode().getProperty("cycleRepID");
+				// if u ~> v exists based on Bloom filter, do DFS through graph
+				// 	if u is not part of an SCC, add undiscovered successors to queue
+				if(!u.hasProperty("cycleMembers")) {
+					for(Relationship r : u.getRelationships(Direction.OUTGOING)) {
+						long id = r.getEndNodeId();
+						if(r.getEndNode().hasProperty("cycleRepID")) {
+							id = (long) r.getEndNode().getProperty("cycleRepID");
+						}
+						if(!wasVisited(id)) {
+							queue.push(dbs.getNodeById(id));
+							visitedNodes.add(id);
+						}
 					}
-					if(!wasVisited(id)) {
-						queue.push(dbs.getNodeById(id));
+				}
+				// 	if u is SCC representative, DFS through SCCs undiscovered successors
+				else {
+					for(long s : CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING)) {
+						long id = s;
+						if(dbs.getNodeById(s).hasProperty("cycleRepID")) {
+							id = (long) dbs.getNodeById(s).getProperty("cycleRepID");
+						}
+						if(v.getId() == s || v.getId() == id) {
+							queue.clear();
+							return true;
+						}
+						if(!wasVisited(id)) {
+							queue.push(dbs.getNodeById(id));
+							visitedNodes.add(id);
+						}
 					}
 				}
 			}
-			// 	if u is SCC representative, DFS through SCCs undiscovered successors
-			else {
-				for(long s : CycleNodesGenerator.findNeighbours(u, Direction.OUTGOING)) {
-					long id = s;
-					if(dbs.getNodeById(s).hasProperty("cycleRepID")) {
-						id = (long) dbs.getNodeById(s).getProperty("cycleRepID");
-					}
-					if(!wasVisited(id)) {
-						queue.push(dbs.getNodeById(id));
-					}
-				}
-			}
-		}
+		} 
 		return false;
 	}
 	

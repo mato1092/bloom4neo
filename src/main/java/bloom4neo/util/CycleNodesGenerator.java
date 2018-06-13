@@ -3,7 +3,6 @@ package bloom4neo.util;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -134,14 +133,17 @@ public abstract class CycleNodesGenerator {
 			v = dbs.getNodeById(id);
 			for(Relationship r : v.getRelationships(d)) {
 				if(d == Direction.OUTGOING) {
+					if(!memberSet.contains(r.getEndNodeId())) {
 						neighbours.add(r.getEndNodeId());		
+					}
 				}
 				else {
-						neighbours.add(r.getEndNodeId());	
+					if(!memberSet.contains(r.getStartNodeId())) {
+						neighbours.add(r.getStartNodeId());	
+					}
 				}
 			}
 		}
-		neighbours.removeAll(memberSet);
 		return neighbours;
 	}
 
@@ -164,20 +166,17 @@ public abstract class CycleNodesGenerator {
 			v = dbs.getNodeById(id);
 			for(Relationship r : v.getRelationships(d)) {
 				if(d == Direction.OUTGOING) {
+					if(!memberSet.contains(r.getEndNodeId())) {
 						neighbours.add(r.getEndNode());		
+					}
 				}
 				else {
+					if(!memberSet.contains(r.getStartNodeId())) {
 						neighbours.add(r.getStartNode());	
+					}
 				}
 			}
 		}
-		List<Node> toRemove = new ArrayList<Node>();
-		for(Node m : neighbours) {
-			if(memberSet.contains(m.getId())) {
-				toRemove.add(m);
-			}
-		}
-		neighbours.removeAll(toRemove);
 		return neighbours;
 	}
 }

@@ -96,6 +96,9 @@ public class ReachQueryTest
             assertFalse(session.run("return bloom4neo.checkReachability(5, 3) as result").next().get("result").asBoolean());
             // 8~>9
             assertTrue(session.run("return bloom4neo.checkReachability(8, 9) as result").next().get("result").asBoolean());
+            // 9~>7
+            assertTrue(session.run("return bloom4neo.checkReachability(9, 7) as result").next().get("result").asBoolean());
+
 
 
         }
