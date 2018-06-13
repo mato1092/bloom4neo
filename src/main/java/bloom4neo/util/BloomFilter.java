@@ -260,13 +260,15 @@ public class BloomFilter {
 					else {
 						v = r.getStartNode();
 					}
-					if(!v.hasProperty(property)) {
-						bfV = computeNodeBF(v, d);
+					if(n.getId() != v.getId()) {
+						if(!v.hasProperty(property)) {
+							bfV = computeNodeBF(v, d);
+						}
+						else {
+							bfV = (byte[]) v.getProperty(property);
+						}
+						bf = addBFs(bf, bfV);
 					}
-					else {
-						bfV = (byte[]) v.getProperty(property);
-					}
-					bf = addBFs(bf, bfV);
 				}
 			}
 			n.setProperty(property, bf);
