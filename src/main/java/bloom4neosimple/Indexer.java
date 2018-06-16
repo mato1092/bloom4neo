@@ -1,6 +1,10 @@
 package bloom4neosimple;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,8 +14,10 @@ import java.util.stream.Stream;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.procedure.*;
 
 import bloom4neosimple.util.BloomFilter;
@@ -24,6 +30,86 @@ public class Indexer {
 	
 	@Context
 	public GraphDatabaseService dbs;
+	
+	
+	
+	
+	@Procedure(name = "bloom4neo.importGraph", mode = Mode.WRITE)
+	public void procedure_importGraph(@Name("path") String path, @Name("separator") String separator) {
+		
+		System.out.println("Start loading Graph");
+		
+		BufferedReader br = null;	
+		
+		try {
+			br = new BufferedReader(new FileReader(path));
+			
+			HashMap<Long, ArrayList<Long>> map = new HashMap<Long, ArrayList<Long>>();
+			HashMap<Long, Long> ids = new HashMap<Long, Long>();
+			String line;
+			
+			while ((line = br.readLine()) != null) {
+				
+				if (line.startsWith("#")) { continue; }
+				
+				String[] tokens = line.split(separator);
+				long nodeIdFrom = Long.parseLong(tokens[0]);
+				long nodeIdTo = Long.parseLong(tokens[1]);
+				
+				if (!map.containsKey(nodeIdFrom)) {
+					map.put(nodeIdFrom, new ArrayList<Long>());
+				}
+				map.get(nodeIdFrom).add(nodeIdTo);
+				
+				
+				if (!map.containsKey(nodeIdTo)) {
+					map.put(nodeIdTo, new ArrayList<Long>());
+				}				
+			}
+			
+			
+			for (long id: map.keySet()) {
+				Node newNode = dbs.createNode(Label.label("Node"));
+				newNode.setProperty("name", id);
+				ids.put(id, newNode.getId());
+			}
+			
+			
+			for (long id: map.keySet()) {
+				Node from = dbs.getNodeById(ids.get(id));
+				
+				for (long rel: map.get(id)) {
+					
+					Node to = dbs.getNodeById(ids.get(rel));
+					
+					RelationshipType rt = RelationshipType.withName("has");
+					from.createRelationshipTo(to, rt);
+				}
+			}
+			
+				
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}	
+		}
+		
+		
+		System.out.println("Successfully created Graph");
+		
+	}
+	
+	
+	
+	
+	
 	
 
 	/**
@@ -113,21 +199,6 @@ public class Indexer {
 		System.out.println("Finished Mass-Reachability-V1");
 		return res.stream();
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 	
 	
