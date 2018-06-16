@@ -225,6 +225,7 @@ public class BloomFilter {
 		// if n representative of an SCC
 		if(n.hasProperty("cycleMembers")){
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			n.setProperty(property, bf);
 			if((long) n.getProperty(cycleDegree) != 0) {
 				// set of outgoing or incoming neighbours of the SCC of n
 				Set<Node> nextNodes = CycleNodesGenerator.findNeighbourNodes(n, d);
@@ -233,11 +234,13 @@ public class BloomFilter {
 					if(!v.hasProperty(property)) {
 						bfV = computeNodeBF(v, d);
 					}
-					bfV = (byte[]) v.getProperty(property);
+					else {
+						bfV = (byte[]) v.getProperty(property);
+					}
 					bf = addBFs(bf, bfV);
+					n.setProperty(property, bf);
 				}	
-			}
-			n.setProperty(property, bf);		
+			}		
 		}
 		// if n member of an SCC
 		else if(n.hasProperty("cycleRepID")){
@@ -245,11 +248,14 @@ public class BloomFilter {
 			if(!cRep.hasProperty(property)) {
 				bf = computeNodeBF(cRep, d);
 			}
-			else bf = (byte[]) cRep.getProperty(property);
+			else {
+				bf = (byte[]) cRep.getProperty(property);
+			}
 		}
 		// if n not part of an SCC
 		else {
 			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			n.setProperty(property, bf);
 			if(n.getDegree(d) != 0) {
 				Node v;
 				byte[] bfV;
@@ -268,10 +274,10 @@ public class BloomFilter {
 							bfV = (byte[]) v.getProperty(property);
 						}
 						bf = addBFs(bf, bfV);
+						n.setProperty(property, bf);
 					}
 				}
 			}
-			n.setProperty(property, bf);
 		}
 		return bf;
 	}
