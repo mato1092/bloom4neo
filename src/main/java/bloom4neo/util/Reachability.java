@@ -61,10 +61,13 @@ public class Reachability {
 		while(!queue.isEmpty()) {
 			u = queue.pop();
 			// Check reachability based on Ldis and Lfin from DFS
-			if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
-				queue.clear();
-				return true;
+			if(u.hasProperty("Ldis") && v.hasProperty("Ldis") && u.hasProperty("Lfin") && v.hasProperty("Lfin")){
+				if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
+					queue.clear();
+					return true;
+				}
 			}
+
 			// Check reachability based on Bloom filters
 			if(BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),
 					(byte[]) v.getProperty("Lin"), (byte[]) v.getProperty("Lout"))) {
