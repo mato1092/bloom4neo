@@ -28,8 +28,6 @@ public class Reachability {
 	public boolean query(Node startNode, Node endNode) {
 		Node u = startNode;
 		Node v = endNode;
-		// TODO: check SCC members as well!!!
-		// TODO: otherwise not all reachable pairs are found!!!
 		// if startNode SCC member, work with representative instead
 		if(startNode.hasProperty("cycleRepID")) {
 			u = dbs.getNodeById((long) startNode.getProperty("cycleRepID"));
@@ -41,12 +39,19 @@ public class Reachability {
 		if(u.getId() == v.getId()) {
 			return true;
 		}
+		// TODO: choose between recursive and iterative implementation by turning comments on/off here:
 		else {
-			queue.clear();
-			queue.push(u);
-			visitedNodes.clear();
-			visitedNodes.add(u.getId());
-			return doIterativeQuery(queue, v);
+			//start of iterative implementation
+//			queue.clear();
+//			queue.push(u);
+//			visitedNodes.clear();
+//			visitedNodes.add(u.getId());
+//			return doIterativeQuery(queue, v);
+			//end of iterative implementation
+			
+			// start of recursive implementation
+			return doQuery(u,v);
+			//end of recursive implementation
 		}
 	}
 	
@@ -136,9 +141,11 @@ public class Reachability {
 //		}
 		
 		// Check reachability based on Ldis and Lfin from DFS
-		if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
-			return true;
-		}
+		if(u.hasProperty("Lfin")) {
+			if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
+				return true;
+			}
+		}	
 		// Check reachability based on Bloom filters
 		if(!BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),
 				(byte[]) v.getProperty("Lin"), (byte[]) v.getProperty("Lout"))) {
