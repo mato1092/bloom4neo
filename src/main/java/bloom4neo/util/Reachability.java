@@ -61,9 +61,24 @@ public class Reachability {
 		while(!queue.isEmpty()) {
 			u = queue.pop();
 			// Check reachability based on Ldis and Lfin from DFS
-			if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
-				queue.clear();
-				return true;
+			if(u.hasProperty("Lfin")) {
+				if((long) u.getProperty("Ldis") <= (long) v.getProperty("Ldis") && (long) u.getProperty("Lfin") >= (long) v.getProperty("Lfin")) {
+					queue.clear();
+					return true;
+				}
+			}
+			// if u not indexed - u must be part of SCC: check reachability of representative!
+			else {
+				if(u.hasProperty("cycleRepID")) {
+					Node cRep = dbs.getNodeById((long) u.getProperty("cycleRepID"));
+					if(!wasVisited(cRep.getId())) {
+						queue.push(cRep);
+					}
+				}
+				// if u not indexed and has no representative: indexing error -> throw exception
+				else{
+					throw(new java.lang.NullPointerException());
+				}
 			}
 			// Check reachability based on Bloom filters
 			if(BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),

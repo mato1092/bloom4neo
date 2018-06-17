@@ -124,7 +124,10 @@ public abstract class CycleNodesGenerator {
 		Set<Long> neighbours = new HashSet<Long>();
 		Node v;
 		GraphDatabaseService dbs = n.getGraphDatabase();
-		long[] members = (long[]) n.getProperty("cycleMembers");
+		long[] members = null;
+		if(n.hasProperty("cycleMembers")){
+			members = (long[]) n.getProperty("cycleMembers");
+		}
 		Set<Long> memberSet = new HashSet<Long>();
 		for (long m : members) {
 			memberSet.add(m);
@@ -157,7 +160,10 @@ public abstract class CycleNodesGenerator {
 		Set<Node> neighbours = new HashSet<Node>();
 		Node v;
 		GraphDatabaseService dbs = n.getGraphDatabase();
-		long[] members = (long[]) n.getProperty("cycleMembers");
+		long[] members = null;
+		if(n.hasProperty("cycleMembers")){
+			members = (long[]) n.getProperty("cycleMembers");
+		}
 		Set<Long> memberSet = new HashSet<Long>();
 		for (long m : members) {
 			memberSet.add(m);

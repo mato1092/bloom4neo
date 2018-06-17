@@ -254,7 +254,9 @@ public class BloomFilter {
 		}
 		// if n not part of an SCC
 		else {
-			bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			if(n.hasProperty("BFID")){
+				bf = addNodeToBF((int) n.getProperty("BFID"), bf);
+			}
 			n.setProperty(property, bf);
 			if(n.getDegree(d) != 0) {
 				Node v;
