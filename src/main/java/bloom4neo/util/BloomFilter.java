@@ -3,6 +3,7 @@ package bloom4neo.util;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -187,15 +188,16 @@ public class BloomFilter {
 	 * @param dbs GraphDatabaseService to be used
 	 */
 	public static void computeBFs(GraphDatabaseService dbs) {
+		Set<Long> foundCycleReps = new HashSet<Long>();
 		for(Node n : dbs.getAllNodes()) {
 			if(!n.hasProperty("Lout")) {
-				computeNodeBF(n, Direction.OUTGOING);
+				computeNodeBF(n, Direction.OUTGOING, foundCycleReps);
 			}
 		}
-
+		foundCycleReps.clear();
 		for(Node n : dbs.getAllNodes()) {
 			if(!n.hasProperty("Lin")) {
-				computeNodeBF(n, Direction.INCOMING);
+				computeNodeBF(n, Direction.INCOMING, foundCycleReps);
 			}
 		}
 		
@@ -209,7 +211,7 @@ public class BloomFilter {
 	 * @param d direction of search
 	 * @return Bloom filter Lout or Lin depending on d
 	 */
-	private static byte[] computeNodeBF(Node n, Direction d) {
+	private static byte[] computeNodeBF(Node n, Direction d, Set<Long> foundCycleReps) {
 		byte[] bf = new byte[]{0};
 		String property;
 		String cycleDegree;
@@ -232,7 +234,7 @@ public class BloomFilter {
 				byte[] bfV;
 				for(Node v : nextNodes) {
 					if(!v.hasProperty(property)) {
-						bfV = computeNodeBF(v, d);
+						bfV = computeNodeBF(v, d, foundCycleReps);
 					}
 					else {
 						bfV = (byte[]) v.getProperty(property);
@@ -244,12 +246,16 @@ public class BloomFilter {
 		}
 		// if n member of an SCC
 		else if(n.hasProperty("cycleRepID")){
-			Node cRep = n.getGraphDatabase().getNodeById((long) n.getProperty("cycleRepID"));
-			if(!cRep.hasProperty(property)) {
-				bf = computeNodeBF(cRep, d);
-			}
-			else {
-				bf = (byte[]) cRep.getProperty(property);
+			long cRepID = (long) n.getProperty("cycleRepID");
+			if(!foundCycleReps.contains(cRepID)) {
+				foundCycleReps.add(cRepID);
+				Node cRep = n.getGraphDatabase().getNodeById(cRepID);
+				if(!cRep.hasProperty(property)) {
+					bf = computeNodeBF(cRep, d, foundCycleReps);
+				}
+				else {
+					bf = (byte[]) cRep.getProperty(property);
+				}
 			}
 		}
 		// if n not part of an SCC
@@ -270,7 +276,7 @@ public class BloomFilter {
 					}
 					if(n.getId() != v.getId()) {
 						if(!v.hasProperty(property)) {
-							bfV = computeNodeBF(v, d);
+							bfV = computeNodeBF(v, d, foundCycleReps);
 						}
 						else {
 							bfV = (byte[]) v.getProperty(property);
