@@ -13,10 +13,39 @@ public class Reachability {
 	private Set<Long> visitedNodes;
 	private GraphDatabaseService dbs;
 	LinkedList<Node> queue = new LinkedList<Node>();
+	// count how many times a BF comparison returns false/true
+	private long falseBFCounter;
+	private long trueBFCounter;
+	
+	public long getFalseBFCounter() {
+		return this.falseBFCounter;
+	}
+	
+	private void incrementFalseBFCounter() {
+		this.falseBFCounter++;
+	} 
+
+	private void resetFalseBFCounter() {
+		this.falseBFCounter = 0;
+	}
+
+	public long getTrueBFCounter() {
+		return this.trueBFCounter;
+	}
+	
+	private void incrementTrueBFCounter() {
+		this.trueBFCounter++;
+	} 
+
+	private void resetTrueBFCounter() {
+		this.trueBFCounter = 0;
+	}
 	
 	public Reachability(GraphDatabaseService gdbs) {
 		this.visitedNodes = new HashSet<Long>();
 		this.dbs = gdbs;
+		this.falseBFCounter = 0;
+		this.trueBFCounter = 0;
 	}
 
 	/**
@@ -50,7 +79,20 @@ public class Reachability {
 			//end of iterative implementation
 			
 			// start of recursive implementation
-			return doQuery(u,v);
+			resetFalseBFCounter();
+			resetTrueBFCounter();
+			if(doQuery(u,v)) {
+				System.out.println("For reachable nodes " + startNode.getId() + " and " + endNode.getId() + ":");
+				System.out.println("BFs returned false" + getFalseBFCounter() + " times.");
+				System.out.println("BFs returned true" + getFalseBFCounter() + " times.");
+				return true;
+			}
+			else {
+				System.out.println("For non-reachable nodes " + startNode.getId() + " and " + endNode.getId() + ":");
+				System.out.println("BFs returned false" + getFalseBFCounter() + " times.");
+				System.out.println("BFs returned true" + getFalseBFCounter() + " times.");
+				return false;
+			}
 			//end of recursive implementation
 		}
 	}
@@ -149,8 +191,10 @@ public class Reachability {
 		// Check reachability based on Bloom filters
 		if(!BloomFilter.checkBFReachability((byte[]) u.getProperty("Lin"), (byte[]) u.getProperty("Lout"),
 				(byte[]) v.getProperty("Lin"), (byte[]) v.getProperty("Lout"))) {
+			incrementFalseBFCounter();
 			return false;
 		}
+		incrementTrueBFCounter();
 		// if u ~> v exists based on Bloom filter, do DFS through graph
 		// 	if u is not part of an SCC, DFS through undiscovered successors
 		if(!u.hasProperty("cycleMembers")) {
