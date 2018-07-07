@@ -66,6 +66,7 @@ public class Reachability {
 			v = dbs.getNodeById((long) endNode.getProperty("cycleRepID"));
 		}
 		if(u.getId() == v.getId()) {
+			System.out.println("same cycle:return true");
 			return true;
 		}
 		// TODO: choose between recursive and iterative implementation by turning comments on/off here:
@@ -84,13 +85,13 @@ public class Reachability {
 			if(doQuery(u,v)) {
 				System.out.println("For reachable nodes " + startNode.getId() + " and " + endNode.getId() + ":");
 				System.out.println("BFs returned false" + getFalseBFCounter() + " times.");
-				System.out.println("BFs returned true" + getFalseBFCounter() + " times.");
+				System.out.println("BFs returned true" + getTrueBFCounter() + " times.");
 				return true;
 			}
 			else {
 				System.out.println("For non-reachable nodes " + startNode.getId() + " and " + endNode.getId() + ":");
 				System.out.println("BFs returned false" + getFalseBFCounter() + " times.");
-				System.out.println("BFs returned true" + getFalseBFCounter() + " times.");
+				System.out.println("BFs returned true" + getTrueBFCounter() + " times.");
 				return false;
 			}
 			//end of recursive implementation
