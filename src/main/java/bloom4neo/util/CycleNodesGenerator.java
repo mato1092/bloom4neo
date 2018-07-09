@@ -47,7 +47,7 @@ public abstract class CycleNodesGenerator {
 		try ( Result result = dbs.execute("CALL algo.scc.stream()")) {
 			
 			// save all data from scc algorithm in this map
-			Map<Long, ArrayList<Long>> cyclesAndMembers = new HashMap<>();
+			Map<Long, HashSet<Long>> cyclesAndMembers = new HashMap<>();
 			
 			// Identify all Members of Cycles and create CycleRepNodes
 			while (result.hasNext()){
@@ -61,7 +61,7 @@ public abstract class CycleNodesGenerator {
 					cyclesAndMembers.get(partition).add(nodeId);
 					
 				} else {
-					ArrayList<Long> newMembersList = new ArrayList<Long>();
+					HashSet<Long> newMembersList = new HashSet<Long>();
 					newMembersList.add(nodeId);
 					cyclesAndMembers.put(partition, newMembersList);
 				}	
@@ -70,7 +70,7 @@ public abstract class CycleNodesGenerator {
 			// Now we have a Map with partition -> List of Members
 			
 			// Iterate the Map and create our CycleRepNodes
-			for (ArrayList<Long> membersList: cyclesAndMembers.values()) {
+			for (HashSet<Long> membersList: cyclesAndMembers.values()) {
 				// ignore cycles with just one member
 				if (membersList.size() > 1) {
 					// create the CycleRep
@@ -80,8 +80,9 @@ public abstract class CycleNodesGenerator {
 					long[] membersArray = new long[membersList.size()];
 					
 					// calc Properties of Cycle Rep
-					for (int i = 0; i <membersList.size(); i++) {
-						Node member = dbs.getNodeById(membersList.get(i));
+					int index = 0;
+					for (Long l: membersList) {
+						Node member = dbs.getNodeById(l);
 						
 						// just count relationships of nodes that are not in the same cycle
 						for(Relationship r: member.getRelationships(Direction.INCOMING)) {
@@ -95,7 +96,8 @@ public abstract class CycleNodesGenerator {
 							}
 						}
 						
-						membersArray[i] = membersList.get(i);
+						membersArray[index] = l;
+						index++;
 						
 						// add Property to each member of the cycleRep
 						member.setProperty(PROPERTY_NODE_CYLCE_REP_NODE_ID, newCycleRepNode.getId());
